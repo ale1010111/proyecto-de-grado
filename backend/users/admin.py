@@ -1,0 +1,15 @@
+from django.contrib import admin
+from .models import User
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        "email",
+        "nombres",
+        "apellido_paterno",
+        "cargo",
+        "is_active",
+        "is_staff",
+    )
+    search_fields = ("email", "nombres", "apellido_paterno")
+    list_filter = ("is_active", "is_staff")
