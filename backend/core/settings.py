@@ -38,11 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'users',
     'solicitudes',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -135,3 +137,6 @@ REST_FRAMEWORK = {
 }
 #usuario personalizado
 AUTH_USER_MODEL = "users.User"
+
+#cors para permitir peticiones desde el frontend(desarrollo)
+CORS_ALLOW_ALL_ORIGINS = True
