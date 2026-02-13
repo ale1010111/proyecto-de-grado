@@ -79,8 +79,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'BDANHV2',
+        'USER': 'postgres',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -140,3 +144,7 @@ AUTH_USER_MODEL = "users.User"
 
 #cors para permitir peticiones desde el frontend(desarrollo)
 CORS_ALLOW_ALL_ORIGINS = True
+
+#id en usuario migracion
+# Configuración para usar IDs de 64 bits (BigInt)
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
