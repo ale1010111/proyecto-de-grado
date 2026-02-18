@@ -35,14 +35,17 @@ class UserViewSet(viewsets.ModelViewSet):
         return UserSerializer
 
     def get_permissions(self):
-        """
-        Permisos dinámicos:
-        - Cualquiera puede registrarse (AllowAny en 'create').
-        - Solo admins pueden ver la lista completa o borrar.
-        """
-        if self.action == 'create':
-            return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        permission_map = {
+            'create': [permissions.AllowAny],
+            'me': [permissions.IsAuthenticated],
+        }
+
+        permission_classes = permission_map.get(
+            self.action,
+            [permissions.IsAdminUser]
+        )
+
+        return [permission() for permission in permission_classes]
 
     # Ejemplo de acción extra: "Mi Perfil"
     # Esto permite ir a /api/users/me/ y ver tus propios datos sin saber tu ID

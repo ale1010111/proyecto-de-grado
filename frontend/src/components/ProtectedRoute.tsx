@@ -2,13 +2,27 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { ReactNode } from "react";
 
-export default function ProtectedRoute({ children }: { children: ReactNode }) {
+interface ProtectedRouteProps {
+  children: ReactNode;
+  allowedRoles?: ("ADMIN" | "ANH" | "ESS" | "CONS")[];
+}
 
-  const { isAuthenticated, loading } = useAuth();
+export default function ProtectedRoute({
+  children,
+  allowedRoles,
+}: ProtectedRouteProps) {
+  const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) return <div>Cargando...</div>;
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Si se especifican roles permitidos, validarlos
+  if (allowedRoles && !allowedRoles.includes(user.tipo_usuario)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
   return <>{children}</>;
 }

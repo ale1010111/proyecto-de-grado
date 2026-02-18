@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'users',
     'solicitudes',
     'consumidores.apps.ConsumidoresConfig',
+    'estaciones',
 ]
 
 MIDDLEWARE = [

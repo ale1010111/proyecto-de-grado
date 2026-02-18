@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from estaciones.models import EstacionServicio
+
 
 
 class ConsumidorPerfil(models.Model):
@@ -9,6 +11,15 @@ class ConsumidorPerfil(models.Model):
         on_delete=models.CASCADE,
         related_name='consumidor_perfil',
         verbose_name="Usuario"
+    )
+
+    estacion_servicio = models.ForeignKey(
+        EstacionServicio,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="consumidores",
+        verbose_name="Estación de Servicio"
     )
 
     ci = models.CharField(
@@ -76,3 +87,5 @@ class ConsumidorPerfil(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.user.username}"
+
+#

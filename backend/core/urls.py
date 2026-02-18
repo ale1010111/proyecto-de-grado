@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+
 urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
@@ -20,6 +21,8 @@ urlpatterns = [
     # Apps
     path('api/', include('users.urls')),
     path('api/consumidor/', include('consumidores.urls')),
+    path("api/", include("estaciones.urls")),
+    path("api/", include("solicitudes.urls")),
 ]
 
 if settings.DEBUG:
