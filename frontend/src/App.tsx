@@ -4,89 +4,185 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-import Login from "./pages/Login";
-import PerfilConsumidor from "./pages/PerfilConsumidor";
-import DashboardEstacion from "./pages/DashboardEstacion";
-import DashboardInstitucional from "./pages/DashboardInstitucional";
+// Páginas públicas
+import Login       from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 
-/**
- * 🔥 Redirección automática según rol
- */
+// Páginas consumidor (lazy)
+import { lazy, Suspense } from "react";
+
+const RegistroConsumidor  = lazy(() => import("./pages/consumidor/Registro"));
+const VerificarPin        = lazy(() => import("./pages/consumidor/VerificarPin"));
+const MiSolicitud         = lazy(() => import("./pages/consumidor/MiSolicitud"));
+const MiPerfil            = lazy(() => import("./pages/consumidor/MiPerfil"));
+
+// Páginas ANH/ADMIN
+const DashboardANH        = lazy(() => import("./pages/anh/Dashboard"));
+const SolicitudesANH      = lazy(() => import("./pages/anh/Solicitudes"));
+const DetalleSolicitudANH = lazy(() => import("./pages/anh/DetalleSolicitud"));
+const ConsumidoresANH     = lazy(() => import("./pages/anh/Consumidores"));
+const DetalleConsumidor   = lazy(() => import("./pages/anh/DetalleConsumidor"));
+const EstacionesANH       = lazy(() => import("./pages/anh/Estaciones"));
+const ReportesANH         = lazy(() => import("./pages/anh/Reportes"));
+const GestionUsuarios = lazy(() => import("./pages/admin/GestionUsuarios"));
+const RegistrarConsumidor = lazy(() => import("./pages/admin/RegistrarConsumidor"));
+// Páginas ESS
+const SolicitudesESS      = lazy(() => import("./pages/estacion/Solicitudes"));
+
+// Loading fallback
+const PageLoader = () => (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-slate-500 text-sm">Cargando...</p>
+    </div>
+  </div>
+);
+
+// ------------------------------------------------
+// REDIRECCIÓN POR ROL
+// ------------------------------------------------
+
 function RoleRedirect() {
   const { user, loading, isAuthenticated } = useAuth();
 
-  if (loading) return <div>Cargando...</div>;
-
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (loading) return <PageLoader />;
+  if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
 
   switch (user.tipo_usuario) {
-    case "CONS":
-      return <Navigate to="/perfil" replace />;
-
-    case "ESS":
-      return <Navigate to="/dashboard-estacion" replace />;
-
-    case "ADMIN":
+    case "CONS":  return <Navigate to="/consumidor/solicitud"  replace />;
+    case "ESS":   return <Navigate to="/estacion/solicitudes"  replace />;
     case "ANH":
-      return <Navigate to="/dashboard-institucional" replace />;
-
-    default:
-      return <Navigate to="/login" replace />;
+    case "ADMIN": return <Navigate to="/anh/dashboard"         replace />;
+    default:      return <Navigate to="/login"                 replace />;
   }
 }
+
+// ------------------------------------------------
+// RUTAS
+// ------------------------------------------------
 
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Login */}
-      <Route path="/login" element={<Login />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
 
-      {/* Redirección inteligente */}
-      <Route path="/" element={<RoleRedirect />} />
+        {/* ---- PÚBLICAS ---- */}
+        <Route path="/login"    element={<Login />} />
+        <Route path="/registro" element={<RegistroConsumidor />} />
+        <Route path="/verificar-email" element={<VerificarPin />} />
+        <Route path="/unauthorized"    element={<Unauthorized />} />
 
-      {/* ================= CONSUMIDOR ================= */}
-      <Route
-        path="/perfil"
-        element={
-          <ProtectedRoute allowedRoles={["CONS"]}>
-            <PerfilConsumidor />
-          </ProtectedRoute>
-        }
-      />
+        {/* ---- REDIRECCIÓN POR ROL ---- */}
+        <Route path="/" element={<RoleRedirect />} />
 
-      {/* ================= ESTACIÓN ================= */}
-      <Route
-        path="/dashboard-estacion"
-        element={
-          <ProtectedRoute allowedRoles={["ESS"]}>
-            <DashboardEstacion />
-          </ProtectedRoute>
-        }
-      />
+        {/* ---- CONSUMIDOR ---- */}
+        <Route path="/consumidor/solicitud"
+          element={
+            <ProtectedRoute allowedRoles={["CONS"]}>
+              <MiSolicitud />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/consumidor/perfil"
+          element={
+            <ProtectedRoute allowedRoles={["CONS"]}>
+              <MiPerfil />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* ================= ADMIN / ANH ================= */}
-      <Route
-        path="/dashboard-institucional"
-        element={
-          <ProtectedRoute allowedRoles={["ADMIN", "ANH"]}>
-            <DashboardInstitucional />
-          </ProtectedRoute>
-        }
-      />
+        {/* ---- ANH / ADMIN ---- */}
+        <Route path="/anh/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <DashboardANH />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/anh/solicitudes"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <SolicitudesANH />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/anh/solicitudes/:idPublico"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <DetalleSolicitudANH />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/anh/consumidores"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <ConsumidoresANH />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/anh/consumidores/:id"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <DetalleConsumidor />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/anh/estaciones"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <EstacionesANH />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/anh/reportes"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <ReportesANH />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* No autorizado */}
-      <Route path="/unauthorized" element={<Unauthorized />} />
+        {/* ---- ESS ---- */}
+        <Route path="/estacion/solicitudes"
+          element={
+            <ProtectedRoute allowedRoles={["ESS"]}>
+              <SolicitudesESS />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* ---- ADMIN ---- */}
+        <Route path="/admin/usuarios"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <GestionUsuarios />
+            </ProtectedRoute>
+          }
+        />
+
+        // Ruta para ANH y ADMIN
+        <Route path="/admin/registrar-consumidor"
+          element={
+            <ProtectedRoute allowedRoles={["ANH", "ADMIN"]}>
+              <RegistrarConsumidor />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ---- FALLBACK ---- */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
+      </Routes>
+    </Suspense>
   );
 }
 
-function App() {
+// ------------------------------------------------
+// APP
+// ------------------------------------------------
+
+export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -95,5 +191,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App;

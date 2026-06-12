@@ -1,12 +1,53 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, EstacionServicioViewSet
+# apps/users/urls.py
 
-# El Router crea las URLs automáticamente por ti
-router = DefaultRouter()
-router.register(r'users', UserViewSet, basename='user')
-router.register(r'estaciones', EstacionServicioViewSet, basename='estacion')
+from django.urls import path
+
+from .views import (
+    ReenviarPinView,
+    RegistroConsumidorView,
+    CrearFuncionarioView,
+    FuncionarioListView,
+    FuncionarioDetailView,
+    FuncionarioCambiarEstadoView,
+    LoginView,
+    RefreshView,
+    LogoutView,
+    VerificarEmailView,
+    SolicitarRecuperacionView,
+    RecuperarPasswordView,
+    CambiarPasswordView,
+    MiPerfilView,
+)
 
 urlpatterns = [
-    path('', include(router.urls)),
+
+    # ------------------------------------------------
+    # REGISTRO
+    # ------------------------------------------------
+    path("registro/consumidor/",   RegistroConsumidorView.as_view(),  name="registro-consumidor"),
+    path("funcionarios/crear/",    CrearFuncionarioView.as_view(),     name="crear-funcionario"),
+
+    # ------------------------------------------------
+    # GESTIÓN DE FUNCIONARIOS (ADMIN/ANH)
+    # ------------------------------------------------
+    path("funcionarios/",          FuncionarioListView.as_view(),      name="funcionarios-list"),
+    path("funcionarios/<int:user_id>/",  FuncionarioDetailView.as_view(),    name="funcionario-detail"),
+    path("funcionarios/<int:user_id>/cambiar-estado/", FuncionarioCambiarEstadoView.as_view(), name="funcionario-cambiar-estado"),
+
+    # ------------------------------------------------
+    # AUTENTICACIÓN
+    # ------------------------------------------------
+    path("auth/login/",                    LoginView.as_view(),                name="login"),
+    path("auth/refresh/",                  RefreshView.as_view(),               name="token-refresh"),
+    path("auth/logout/",                   LogoutView.as_view(),                name="logout"),
+    path("auth/verificar-email/",          VerificarEmailView.as_view(),        name="verificar-email"),
+    path("auth/recuperar-password/",       SolicitarRecuperacionView.as_view(), name="solicitar-recuperacion"),
+    path("auth/recuperar-password/confirmar/", RecuperarPasswordView.as_view(), name="recuperar-password"),
+    path("auth/reenviar-pin/",             ReenviarPinView.as_view(),           name="reenviar-pin"),
+
+    # ------------------------------------------------
+    # PERFIL Y CONTRASEÑA
+    # ------------------------------------------------
+    path("auth/cambiar-password/",         CambiarPasswordView.as_view(),       name="cambiar-password"),
+    path("me/",                            MiPerfilView.as_view(),              name="mi-perfil"),
 ]

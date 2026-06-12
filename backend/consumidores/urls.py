@@ -1,14 +1,49 @@
-from django.urls import path, include
-from .views import ConsumidorPerfilView
-from rest_framework.routers import DefaultRouter
-from .views import ConsumidorAdminViewSet, ConsumidorPerfilView
+# apps/consumidores/urls.py
 
-#router = DefaultRouter()
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+from .views import (
+    MiPerfilConsumidorView,
+    MisDocumentosView,
+    ConsumidorPerfilViewSet,
+)
+
+
 router = DefaultRouter()
-router.register("admin/consumidores", ConsumidorAdminViewSet, basename="consumidor-admin")
+
+router.register(
+    r"consumidores",
+    ConsumidorPerfilViewSet,
+    basename="consumidor"
+)
 
 urlpatterns = [
-    path('perfil/', ConsumidorPerfilView.as_view(), name='perfil-consumidor'),
+
+    # ------------------------------------------------
+    # CONSUMIDOR AUTENTICADO (CONS)
+    # ------------------------------------------------
+
+    path(
+        "consumidores/me/",
+        MiPerfilConsumidorView.as_view(),
+        name="mi-perfil-consumidor"
+    ),
+
+    path(
+        "consumidores/me/documentos/",
+        MisDocumentosView.as_view(),
+        name="mis-documentos"
+    ),
+
+    # ------------------------------------------------
+    # GESTIÓN ANH (ViewSet)
+    # Genera:
+    #   GET  /consumidores/
+    #   GET  /consumidores/{id}/
+    #   POST /consumidores/{id}/verificar/
+    #   POST /consumidores/{id}/alerta/
+    # ------------------------------------------------
+
     path("", include(router.urls)),
 ]
-

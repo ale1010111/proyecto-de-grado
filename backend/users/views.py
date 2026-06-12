@@ -1,104 +1,723 @@
-from rest_framework import viewsets, permissions, status
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from .models import User, EstacionServicio
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+# apps/users/views.py
+import os
+from django.db import transaction, IntegrityError
+from django.utils import timezone
+from django.conf import settings
+from django.db import models
+
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status
+
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import User, TokenVerificacion
+from .services import crear_token_verificacion
+from .email_service import (
+    enviar_pin_verificacion,
+    enviar_token_recuperacion,
+)
 from .serializers import (
-    UserSerializer, 
-    UserRegistrationSerializer, 
-    EstacionServicioSerializer
+    LoginSerializer,
+    RegistroConsumidorSerializer,
+    CrearFuncionarioSerializer,
+    VerificarEmailSerializer,
+    SolicitarRecuperacionSerializer,
+    RecuperarPasswordSerializer,
+    CambiarPasswordSerializer,
+    UserSerializer,
 )
 
 
-# 1. Vista para Estaciones de Servicio (CRUD completo)
-class EstacionServicioViewSet(viewsets.ModelViewSet):
-    queryset = EstacionServicio.objects.all()
-    serializer_class = EstacionServicioSerializer
-    permission_classes = [permissions.IsAuthenticated] # Solo usuarios logueados
+# ------------------------------------------------
+# HELPERS
+# ------------------------------------------------
 
-# 2. Vista para Usuarios (Lógica especial)
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    # No definimos un serializer_class fijo aquí, usamos el método get_serializer_class
-    
-    def get_serializer_class(self):
-        """
-        Usamos un serializer diferente si estamos CREANDO un usuario
-        vs si estamos LEYENDO usuarios.
-        """
-        if self.action == 'create':
-            return UserRegistrationSerializer
-        return UserSerializer
+def _set_auth_cookies(response, access: str, refresh: str) -> None:
+    secure = not settings.DEBUG  # False en desarrollo, True en producción
+    response.set_cookie(
+        key="access_token",
+        value=access,
+        httponly=True,
+        secure=secure,
+        samesite="Lax"    # ← cambiar Strict por Lax para desarrollo
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh,
+        httponly=True,
+        secure=secure,
+        samesite="Lax"
+    )
 
-    def get_permissions(self):
-        permission_map = {
-            'create': [permissions.AllowAny],
-            'me': [permissions.IsAuthenticated],
-        }
 
-        permission_classes = permission_map.get(
-            self.action,
-            [permissions.IsAdminUser]
-        )
+def _clear_auth_cookies(response) -> None:
+    """
+    Elimina las cookies de autenticación.
+    """
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
 
-        return [permission() for permission in permission_classes]
 
-    # Ejemplo de acción extra: "Mi Perfil"
-    # Esto permite ir a /api/users/me/ y ver tus propios datos sin saber tu ID
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def me(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
-    
-# 3. Vista para Login (JWT)
-class LoginView(TokenObtainPairView):
-    permission_classes = [AllowAny]
+# ------------------------------------------------
+# REGISTRO DE CONSUMIDOR
+# ------------------------------------------------
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+class RegistroConsumidorView(APIView):
+    """
+    Registro público de consumidores desde el frontend.
+    Crea User (CONS) + ConsumidorPerfil en una transacción.
+    El estado queda PENDIENTE hasta verificar email.
+    """
 
-        if response.status_code == 200:
-            refresh = response.data["refresh"]
-            access = response.data["access"]
-
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh,
-                httponly=True,
-                secure=False,  # 🔥 Cambiar a True en producción
-                samesite="Lax",
-            )
-
-            response.data = {
-                "access": access
-            }
-
-        return response
-# Vista para refrescar el token usando el refresh token de la cookie
-class RefreshView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+
+        serializer = RegistroConsumidorSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            user = serializer.save()
+        except IntegrityError:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(
+                {"email": "Ya existe una cuenta registrada con este correo."}
+            )
+
+        # Generar y enviar PIN de verificación de email
+        token = crear_token_verificacion(
+            user=user,
+            tipo=TokenVerificacion.TipoToken.VERIFICACION_EMAIL
+        )
+
+        enviar_pin_verificacion(user=user, pin=token.codigo_pin)
+
+        return Response(
+            {
+                "detail": (
+                    "Registro exitoso. Revise su correo para "
+                    "verificar su cuenta."
+                ),
+                "email": user.email,
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+
+# ------------------------------------------------
+# CREAR FUNCIONARIO (ADMIN)
+# ------------------------------------------------
+
+class CrearFuncionarioView(APIView):
+    """
+    Creación de funcionarios ADMIN, ANH y ESS.
+    Solo accesible por administradores del sistema.
+    Crea User + PerfilFuncionario en un solo paso.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        return [IsAuthenticated()]
+
+    def post(self, request):
+
+        # Solo ADMIN puede crear funcionarios
+        if request.user.tipo_usuario != User.TipoUsuario.ADMIN:
+            return Response(
+                {"detail": "Solo los administradores pueden crear funcionarios."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = CrearFuncionarioSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            user = serializer.save()
+        except IntegrityError:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(
+                {"email": "Ya existe un funcionario registrado con este correo o documento."}
+            )
+
+        return Response(
+            {
+                "detail": "Funcionario creado exitosamente.",
+                "email": user.email,
+                "tipo_usuario": user.tipo_usuario,
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+
+# ------------------------------------------------
+# LOGIN
+# ------------------------------------------------
+
+class LoginView(APIView):
+    """
+    Autenticación por email y contraseña.
+    Retorna tokens JWT como cookies httponly.
+    Registra intentos fallidos y bloquea tras 5 intentos.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        serializer = LoginSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+
+        if not serializer.is_valid():
+            # Registrar intento fallido si el usuario existe
+            email = request.data.get("email", "")
+            try:
+                user = User.objects.get(email=email)
+                from configuracion.models import ConfiguracionSistema
+                config = ConfiguracionSistema.obtener()
+
+                user.intentos_fallidos += 1
+
+                # Bloquear tras superar el máximo configurado
+                if user.intentos_fallidos >= config.max_intentos_fallidos:
+                    user.bloqueado_hasta = timezone.now() + timezone.timedelta(
+                        minutes=config.tiempo_bloqueo_minutos
+                    )
+
+                user.save(update_fields=["intentos_fallidos", "bloqueado_hasta"])
+            except User.DoesNotExist:
+                pass
+
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = serializer.validated_data["user"]
+
+        # Resetear intentos fallidos tras login exitoso
+        if user.intentos_fallidos > 0:
+            user.intentos_fallidos = 0
+            user.bloqueado_hasta = None
+            user.save(update_fields=["intentos_fallidos", "bloqueado_hasta"])
+
+        # Generar tokens JWT
+        refresh = RefreshToken.for_user(user)
+        access  = str(refresh.access_token)
+
+        response = Response(
+            {
+                "detail": "Login exitoso.",
+                "user": UserSerializer(user).data,
+            },
+            status=status.HTTP_200_OK
+        )
+
+        _set_auth_cookies(response, access=access, refresh=str(refresh))
+
+        return response
+
+
+# ------------------------------------------------
+# REFRESH TOKEN
+# ------------------------------------------------
+
+class RefreshView(APIView):
+    """
+    Renueva el access token usando el refresh token
+    almacenado en las cookies.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
         refresh_token = request.COOKIES.get("refresh_token")
 
         if not refresh_token:
-            return Response({"detail": "No refresh token"}, status=401)
+            return Response(
+                {"detail": "Token no encontrado."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
-            token = RefreshToken(refresh_token)
-            return Response({"access": str(token.access_token)})
-        except Exception:
-            return Response({"detail": "Invalid token"}, status=401)
+            refresh = RefreshToken(refresh_token)
+            access  = str(refresh.access_token)
 
-# Vista para logout (borrar la cookie)
+            response = Response(
+                {"detail": "Token renovado."},
+                status=status.HTTP_200_OK
+            )
+            _set_auth_cookies(response, access=access, refresh=refresh_token)
+            return response
+
+        except Exception:
+            return Response(
+                {"detail": "Token inválido o expirado."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+# ------------------------------------------------
+# LOGOUT
+# ------------------------------------------------
+
 class LogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    """
+    Cierra la sesión del usuario autenticado.
+    Invalida el refresh token y elimina las cookies.
+    """
+
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        response = Response({"detail": "Logged out"})
-        response.delete_cookie("refresh_token")
+
+        refresh_token = request.COOKIES.get("refresh_token")
+
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                # Si el token ya es inválido, igual limpiamos cookies
+                pass
+
+        response = Response(
+            {"detail": "Logout exitoso."},
+            status=status.HTTP_200_OK
+        )
+        _clear_auth_cookies(response)
         return response
+
+
+# ------------------------------------------------
+# VERIFICAR EMAIL POR PIN
+# ------------------------------------------------
+
+class VerificarEmailView(APIView):
+    """
+    Verifica el email del consumidor mediante un PIN
+    de 6 dígitos enviado por correo electrónico.
+    La validación completa se delega al serializer.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        serializer = VerificarEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user  = serializer.validated_data["user"]
+        token = serializer.validated_data["token"]
+
+        with transaction.atomic():
+            user.email_verificado = True
+            user.estado_cuenta    = User.EstadoCuenta.ACTIVO
+            user.save(update_fields=["email_verificado", "estado_cuenta"])
+
+            token.usado = True
+            token.save(update_fields=["usado"])
+
+        return Response(
+            {"detail": "Correo verificado correctamente."},
+            status=status.HTTP_200_OK
+        )
+
+
+# ------------------------------------------------
+# SOLICITAR RECUPERACIÓN DE CONTRASEÑA
+# ------------------------------------------------
+
+class SolicitarRecuperacionView(APIView):
+    """
+    Recibe el email y envía un token de recuperación
+    si el usuario existe. Siempre responde con éxito
+    para no revelar si el email está registrado.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        serializer = SolicitarRecuperacionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+
+        try:
+            user = User.objects.get(email=email)
+
+            # Generar token de recuperación
+            # (invalida anteriores internamente)
+            token = crear_token_verificacion(
+                user=user,
+                tipo=TokenVerificacion.TipoToken.RECUPERACION_PASSWORD
+            )
+
+            enviar_token_recuperacion(user=user, token_uuid=str(token.token))
+
+        except User.DoesNotExist:
+            # No revelamos si el email existe
+            pass
+
+        return Response(
+            {
+                "detail": (
+                    "Si el correo está registrado, recibirá "
+                    "las instrucciones para recuperar su contraseña."
+                )
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+# ------------------------------------------------
+# RECUPERAR CONTRASEÑA (CON TOKEN)
+# ------------------------------------------------
+
+class RecuperarPasswordView(APIView):
+    """
+    Permite cambiar la contraseña usando el token
+    de recuperación recibido por correo.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        serializer = RecuperarPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        token_obj    = serializer.validated_data["token_obj"]
+        password_nuevo = serializer.validated_data["password"]
+
+        with transaction.atomic():
+            user = token_obj.user
+            user.set_password(password_nuevo)
+            user.requiere_cambio_password = False
+            user.save(update_fields=["password", "requiere_cambio_password"])
+
+            token_obj.usado = True
+            token_obj.save(update_fields=["usado"])
+
+        return Response(
+            {"detail": "Contraseña actualizada correctamente."},
+            status=status.HTTP_200_OK
+        )
+
+
+# ------------------------------------------------
+# CAMBIAR CONTRASEÑA (USUARIO AUTENTICADO)
+# ------------------------------------------------
+
+class CambiarPasswordView(APIView):
+    """
+    Permite al usuario autenticado cambiar su contraseña
+    conociendo la actual. También usado cuando
+    requiere_cambio_password=True.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        serializer = CambiarPasswordSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        user = request.user
+        user.set_password(serializer.validated_data["password_nuevo"])
+        user.requiere_cambio_password = False
+        user.save(update_fields=["password", "requiere_cambio_password"])
+
+        # Invalidar sesión actual para forzar nuevo login
+        response = Response(
+            {
+                "detail": (
+                    "Contraseña actualizada. "
+                    "Por favor inicie sesión nuevamente."
+                )
+            },
+            status=status.HTTP_200_OK
+        )
+        _clear_auth_cookies(response)
+        return response
+
+
+
+# ------------------------------------------------
+# REENVIAR PIN DE VERIFICACIÓN
+# ------------------------------------------------
+
+class ReenviarPinView(APIView):
+    """
+    Permite al usuario solicitar un nuevo PIN
+    si no pudo verificar su cuenta por email.
+    Solo funciona si la cuenta no está verificada.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "").lower().strip()
+
+        if not email:
+            return Response(
+                {"detail": "El email es requerido."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Si el correo está registrado y no verificado, recibirás un nuevo PIN."},
+                status=status.HTTP_200_OK
+            )
+
+        if user.email_verificado:
+            return Response(
+                {"detail": "Esta cuenta ya está verificada. Inicia sesión normalmente."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Invalidar PINs anteriores y generar uno nuevo
+        TokenVerificacion.objects.filter(
+            user=user,
+            tipo=TokenVerificacion.TipoToken.VERIFICACION_EMAIL,
+            usado=False,
+        ).update(usado=True)
+
+        token = crear_token_verificacion(
+            user=user,
+            tipo=TokenVerificacion.TipoToken.VERIFICACION_EMAIL
+        )
+        enviar_pin_verificacion(user=user, pin=token.codigo_pin)
+
+        return Response(
+            {"detail": "Se envió un nuevo PIN a tu correo electrónico."},
+            status=status.HTTP_200_OK
+        )
+
+# ------------------------------------------------
+# PERFIL DEL USUARIO AUTENTICADO
+# ------------------------------------------------
+
+class MiPerfilView(APIView):
+    """
+    Retorna los datos del usuario autenticado.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(
+            UserSerializer(request.user).data,
+            status=status.HTTP_200_OK
+        )
+
+#-------------------------------------------------
+
+class FuncionarioListView(APIView):
+    """
+    Lista todos los funcionarios del sistema.
+    ADMIN puede ver ANH, ESS y ADMIN.
+    ANH puede ver solo ESS.
+    """
+    permission_classes = [IsAuthenticated]
+ 
+    def get(self, request):
+        user = request.user
+ 
+        if user.tipo_usuario not in ["ADMIN", "ANH"]:
+            return Response(
+                {"detail": "No tienes permiso para ver funcionarios."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+ 
+        # Filtrar por tipo si se especifica
+        tipo = request.query_params.get("tipo_usuario", None)
+        search = request.query_params.get("search", "")
+ 
+        qs = User.objects.exclude(
+            tipo_usuario=User.TipoUsuario.CONS
+        ).select_related("perfil_funcionario__estacion_servicio")
+ 
+        # ANH solo puede ver ESS
+        if user.tipo_usuario == "ANH":
+            qs = qs.filter(tipo_usuario=User.TipoUsuario.ESS)
+ 
+        if tipo:
+            qs = qs.filter(tipo_usuario=tipo)
+ 
+        if search:
+            qs = qs.filter(
+                models.Q(nombres__icontains=search) |
+                models.Q(apellido_paterno__icontains=search) |
+                models.Q(email__icontains=search)
+            )
+ 
+        data = []
+        for u in qs:
+            perfil = getattr(u, "perfil_funcionario", None)
+            data.append({
+                "id":               u.id,
+                "email":            u.email,
+                "nombres":          u.nombres,
+                "apellido_paterno": u.apellido_paterno,
+                "apellido_materno": u.apellido_materno,
+                "nombre_completo":  u.nombre_completo(),
+                "tipo_usuario":     u.tipo_usuario,
+                "estado_cuenta":    u.estado_cuenta,
+                "email_verificado": u.email_verificado,
+                "date_joined":      u.date_joined.isoformat(),
+                "perfil": {
+                    "id":                   perfil.id if perfil else None,
+                    "cargo":                perfil.cargo if perfil else "",
+                    "unidad_departamento":  perfil.unidad_departamento if perfil else "",
+                    "numero_funcionario":   perfil.numero_funcionario if perfil else "",
+                    "numero_documento":     perfil.numero_documento if perfil else "",
+                    "tipo_documento":       perfil.tipo_documento if perfil else "",
+                    "celular":              perfil.celular if perfil else "",
+                    "estacion_servicio_id": perfil.estacion_servicio_id if perfil else None,
+                    "estacion_nombre":      perfil.estacion_servicio.nombre if perfil and perfil.estacion_servicio else None,
+                } if perfil else None,
+            })
+ 
+        return Response(data, status=status.HTTP_200_OK)
+ 
+ 
+class FuncionarioDetailView(APIView):
+    """
+    Detalle, edición y cambio de estado de un funcionario.
+    """
+    permission_classes = [IsAuthenticated]
+ 
+    def _get_usuario(self, user_id, request_user):
+        try:
+            u = User.objects.select_related(
+                "perfil_funcionario__estacion_servicio"
+            ).get(id=user_id)
+        except User.DoesNotExist:
+            return None
+ 
+        # ANH solo puede ver ESS
+        if request_user.tipo_usuario == "ANH" and u.tipo_usuario != "ESS":
+            return None
+ 
+        # ANH no puede ver otros ANH ni ADMIN
+        if request_user.tipo_usuario not in ["ADMIN", "ANH"]:
+            return None
+ 
+        return u
+ 
+    def get(self, request, user_id):
+        u = self._get_usuario(user_id, request.user)
+        if not u:
+            return Response({"detail": "No encontrado."}, status=status.HTTP_404_NOT_FOUND)
+ 
+        perfil = getattr(u, "perfil_funcionario", None)
+        return Response({
+            "id":               u.id,
+            "email":            u.email,
+            "nombres":          u.nombres,
+            "apellido_paterno": u.apellido_paterno,
+            "apellido_materno": u.apellido_materno,
+            "tipo_usuario":     u.tipo_usuario,
+            "estado_cuenta":    u.estado_cuenta,
+            "email_verificado": u.email_verificado,
+            "date_joined":      u.date_joined.isoformat(),
+            "perfil": {
+                "id":                   perfil.id if perfil else None,
+                "cargo":                perfil.cargo if perfil else "",
+                "unidad_departamento":  perfil.unidad_departamento if perfil else "",
+                "numero_funcionario":   perfil.numero_funcionario if perfil else "",
+                "numero_documento":     perfil.numero_documento if perfil else "",
+                "tipo_documento":       perfil.tipo_documento if perfil else "",
+                "celular":              perfil.celular if perfil else "",
+                "estacion_servicio_id": perfil.estacion_servicio_id if perfil else None,
+                "estacion_nombre":      perfil.estacion_servicio.nombre if perfil and perfil.estacion_servicio else None,
+            } if perfil else None,
+        })
+ 
+    def put(self, request, user_id):
+        u = self._get_usuario(user_id, request.user)
+        if not u:
+            return Response({"detail": "No encontrado."}, status=status.HTTP_404_NOT_FOUND)
+ 
+        data = request.data
+ 
+        # Actualizar datos básicos del usuario
+        u.nombres          = data.get("nombres", u.nombres)
+        u.apellido_paterno = data.get("apellido_paterno", u.apellido_paterno)
+        u.apellido_materno = data.get("apellido_materno", u.apellido_materno)
+        u.save(update_fields=["nombres", "apellido_paterno", "apellido_materno"])
+ 
+        # Actualizar perfil funcionario
+        perfil = getattr(u, "perfil_funcionario", None)
+        if perfil:
+            perfil.cargo               = data.get("cargo", perfil.cargo)
+            perfil.unidad_departamento = data.get("unidad_departamento", perfil.unidad_departamento)
+            perfil.celular             = data.get("celular", perfil.celular)
+ 
+            # Actualizar estacion solo para ESS
+            if u.tipo_usuario == "ESS" and "estacion_servicio_id" in data:
+                from estaciones.models import EstacionServicio
+                try:
+                    est = EstacionServicio.objects.get(id=data["estacion_servicio_id"])
+                    perfil.estacion_servicio = est
+                except EstacionServicio.DoesNotExist:
+                    return Response(
+                        {"detail": "Estación no encontrada."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+ 
+            perfil.save()
+ 
+        return Response({"detail": "Funcionario actualizado correctamente."})
+ 
+ 
+class FuncionarioCambiarEstadoView(APIView):
+    """
+    Activa o suspende un funcionario.
+    Solo ADMIN puede cambiar estado de cualquier funcionario.
+    """
+    permission_classes = [IsAuthenticated]
+ 
+    def post(self, request, user_id):
+        if request.user.tipo_usuario != "ADMIN":
+            return Response(
+                {"detail": "Solo el administrador puede cambiar el estado de un funcionario."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+ 
+        try:
+            u = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "No encontrado."}, status=status.HTTP_404_NOT_FOUND)
+ 
+        nuevo_estado = request.data.get("estado_cuenta")
+        if nuevo_estado not in [
+            User.EstadoCuenta.ACTIVO,
+            User.EstadoCuenta.SUSPENDIDO,
+        ]:
+            return Response(
+                {"detail": "Estado inválido. Use ACTIVO o SUSPENDIDO."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+ 
+        u.estado_cuenta = nuevo_estado
+        u.save(update_fields=["estado_cuenta"])
+ 
+        return Response({
+            "detail": f"Estado cambiado a {nuevo_estado}.",
+            "estado_cuenta": nuevo_estado,
+        })
+ 

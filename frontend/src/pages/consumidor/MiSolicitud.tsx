@@ -1,0 +1,663 @@
+// src/pages/consumidor/MiSolicitud.tsx
+
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Layout from "../../components/Layout";
+import { EstadoSolicitudBadge } from "../../components/ui/EstadoBadge";
+import { solicitudesService } from "../../services/solicitudes.service";
+import type { Solicitud } from "../../types/solicitud.types";
+import { COMBUSTIBLES } from "../../utils/constants";
+import { formatFecha, formatIdPublico } from "../../utils/format";
+import {
+  FileText, Plus, X, Download, AlertCircle,
+  CheckCircle, Clock, ChevronDown, ChevronUp,
+  MessageSquare, AlertTriangle, Send
+} from "lucide-react";
+import PDFViewer from "../../components/ui/PDFViewer";
+
+// ------------------------------------------------
+// SCHEMAS
+// ------------------------------------------------
+
+const schema = z.object({
+  tipo_combustible:              z.string().min(1, "Selecciona el tipo de combustible"),
+  litros_solicitados:            z.number().int().min(1).max(120),
+  uso_combustible:               z.string().min(10, "Describe el uso (mínimo 10 caracteres)").max(200),
+  declaracion_jurada_confirmada: z.boolean(),
+});
+
+const respuestaSchema = z.object({
+  respuesta: z.string().min(10, "La respuesta debe tener al menos 10 caracteres").max(500),
+});
+
+type FormData = {
+  tipo_combustible:              string;
+  litros_solicitados:            number;
+  uso_combustible:               string;
+  declaracion_jurada_confirmada: boolean;
+};
+
+type RespuestaData = z.infer<typeof respuestaSchema>;
+
+// ------------------------------------------------
+// HELPERS — countdown
+// ------------------------------------------------
+const horasRestantes = (fechaLimite: string | null): number => {
+  if (!fechaLimite) return 0;
+  const diff = new Date(fechaLimite).getTime() - Date.now();
+  if (diff <= 0) return 0;
+  return Math.floor(diff / (1000 * 60 * 60));
+};
+
+const minutosRestantes = (fechaLimite: string | null): number => {
+  if (!fechaLimite) return 0;
+  const diff = new Date(fechaLimite).getTime() - Date.now();
+  if (diff <= 0) return 0;
+  return Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+};
+
+// ------------------------------------------------
+// COMPONENTE
+// ------------------------------------------------
+
+export default function MiSolicitud() {
+  const [solicitudActiva,  setSolicitudActiva]  = useState<Solicitud | null>(null);
+  const [historial,        setHistorial]        = useState<Solicitud[]>([]);
+  const [loading,          setLoading]          = useState(true);
+  const [creando,          setCreando]          = useState(false);
+  const [respondiendo,     setRespondiendo]     = useState(false);
+  const [mostrarForm,      setMostrarForm]      = useState(false);
+  const [mostrarRespuesta, setMostrarRespuesta] = useState(false);
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
+  const [error,            setError]            = useState("");
+  const [exito,            setExito]            = useState("");
+  const [docJustificativo, setDocJustificativo] = useState<File | null>(null);
+  const [pdfViewer,     setPdfViewer]     = useState<"declaracion" | "comprobante" | null>(null);
+  const [docRespuesta,     setDocRespuesta]     = useState<File | null>(null);
+
+  const {
+    register, handleSubmit, reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      tipo_combustible:              "",
+      litros_solicitados:            1,
+      uso_combustible:               "",
+      declaracion_jurada_confirmada: false,
+    }
+  });
+
+  const formRespuesta = useForm<RespuestaData>({
+    resolver: zodResolver(respuestaSchema),
+    defaultValues: { respuesta: "" },
+  });
+
+  // ------------------------------------------------
+  // CARGAR — lista + detalle completo de activa
+  // ------------------------------------------------
+  const cargar = async () => {
+    setLoading(true);
+    try {
+      const todas = await solicitudesService.getMisSolicitudes();
+      const activaBasic = todas.find(s =>
+        ["PENDIENTE", "OBSERVADA", "APROBADA"].includes(s.estado)
+      ) ?? null;
+
+      // Cargar detalle completo para obtener fecha_limite_respuesta y observacion_anh
+      if (activaBasic) {
+        const detalle = await solicitudesService.getById(activaBasic.id_publico);
+        setSolicitudActiva(detalle);
+      } else {
+        setSolicitudActiva(null);
+      }
+
+      setHistorial(todas.filter(s =>
+        !["PENDIENTE", "OBSERVADA", "APROBADA"].includes(s.estado)
+      ));
+    } catch {
+      setError("Error al cargar las solicitudes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { cargar(); }, []);
+
+  // ------------------------------------------------
+  // CREAR SOLICITUD
+  // ------------------------------------------------
+  const onSubmit = async (data: FormData) => {
+    setCreando(true);
+    setError("");
+    if (!data.declaracion_jurada_confirmada) {
+      setError("Debes confirmar la declaración jurada.");
+      setCreando(false);
+      return;
+    }
+    try {
+      await solicitudesService.crear({
+        tipo_combustible:              data.tipo_combustible as import("../../types/solicitud.types").TipoCombustible,
+        litros_solicitados:            data.litros_solicitados,
+        uso_combustible:               data.uso_combustible,
+        declaracion_jurada_confirmada: true,
+        documento_justificativo:       docJustificativo,
+      });
+      setExito("¡Solicitud creada exitosamente! La ANH revisará tu solicitud.");
+      setMostrarForm(false);
+      reset();
+      await cargar();
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: Record<string, string[]> | { detail?: string } } };
+      const data2 = e.response?.data;
+      if (data2 && "detail" in data2) {
+        const detail = (data2 as { detail?: string }).detail;
+        setError(Array.isArray(detail) ? detail[0] : (detail ?? "Error al crear la solicitud."));
+      } else if (data2) {
+        const msgs = Object.entries(data2 as Record<string, unknown>)
+          .map(([k, v]) => Array.isArray(v) ? `${k}: ${v[0]}` : `${k}: ${String(v)}`)
+          .join(" | ");
+        setError(msgs);
+      } else {
+        setError("Error al crear la solicitud.");
+      }
+    } finally {
+      setCreando(false);
+    }
+  };
+
+  // ------------------------------------------------
+  // RESPONDER OBSERVACIÓN
+  // ------------------------------------------------
+  const onResponder = async (data: RespuestaData) => {
+    if (!solicitudActiva) return;
+    setRespondiendo(true);
+    setError("");
+    try {
+      await solicitudesService.responderObservacion(
+        solicitudActiva.id_publico,
+        data.respuesta,
+        docRespuesta,
+      );
+      setExito(
+        "¡Respuesta enviada! Tu solicitud volvió a estado Pendiente. " +
+        "La ANH la revisará nuevamente."
+      );
+      setMostrarRespuesta(false);
+      formRespuesta.reset();
+      setDocRespuesta(null);
+      await cargar();
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { detail?: string } } };
+      const detail = e.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail[0] : (detail ?? "Error al enviar la respuesta."));
+    } finally {
+      setRespondiendo(false);
+    }
+  };
+
+  // ------------------------------------------------
+  // CANCELAR
+  // ------------------------------------------------
+  const cancelar = async () => {
+    if (!solicitudActiva) return;
+    if (!confirm("¿Estás seguro de cancelar tu solicitud?")) return;
+    try {
+      await solicitudesService.cancelar(solicitudActiva.id_publico);
+      setExito("Solicitud cancelada.");
+      await cargar();
+    } catch {
+      setError("Error al cancelar la solicitud.");
+    }
+  };
+
+  const descargarComprobante = async () => {
+    if (!solicitudActiva) return;
+    try { await solicitudesService.descargarComprobante(solicitudActiva.id_publico); }
+    catch { setError("Error al descargar el comprobante."); }
+  };
+
+  const descargarDeclaracion = async (idPublico: string) => {
+    try { await solicitudesService.descargarDeclaracionJurada(idPublico); }
+    catch { setError("Error al descargar la declaración jurada."); }
+  };
+
+  if (loading) return (
+    <Layout>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </Layout>
+  );
+
+  const inputCls = (hasErr: boolean) =>
+    `w-full px-4 py-2.5 rounded-xl border text-sm outline-none bg-slate-50 transition-colors ${
+      hasErr ? "border-red-300" : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:bg-white"
+    }`;
+
+  // ------------------------------------------------
+  // DATOS DE OBSERVACIÓN
+  // ------------------------------------------------
+  const estaObservada = solicitudActiva?.estado === "OBSERVADA";
+  const fechaLimite   = solicitudActiva?.fecha_limite_respuesta ?? null;
+  const horas         = estaObservada ? horasRestantes(fechaLimite) : 0;
+  const minutos       = estaObservada ? minutosRestantes(fechaLimite) : 0;
+  const plazoVencido  = estaObservada && !!fechaLimite && new Date(fechaLimite).getTime() < Date.now();
+  const porcentajeTiempo = fechaLimite
+    ? Math.min(100, Math.max(0, ((horas * 60 + minutos) / (24 * 60)) * 100))
+    : 0;
+
+  return (
+    <Layout>
+      <div className="max-w-2xl mx-auto space-y-6">
+
+        {/* TÍTULO */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Mis Solicitudes</h1>
+            <p className="text-slate-500 text-sm mt-1">Gestiona tu solicitud de combustible</p>
+          </div>
+          {!solicitudActiva && (
+            <button
+              onClick={() => { setMostrarForm(!mostrarForm); setError(""); setExito(""); }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors"
+            >
+              {mostrarForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              {mostrarForm ? "Cancelar" : "Nueva solicitud"}
+            </button>
+          )}
+        </div>
+
+        {/* ALERTAS */}
+        {error && (
+          <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /> <span>{error}</span>
+          </div>
+        )}
+        {exito && (
+          <div className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
+            <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" /> <span>{exito}</span>
+          </div>
+        )}
+
+        {/* BANNER OBSERVACIÓN VIGENTE */}
+        {estaObservada && !plazoVencido && (
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl px-5 py-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-amber-800 text-sm mb-1">
+                  Tu solicitud fue observada por la ANH
+                </p>
+                <p className="text-amber-700 text-sm mb-2">
+                  Tienes <strong>{horas}h {minutos}m</strong> para responder la observación.
+                  Si no respondes a tiempo, la solicitud será rechazada automáticamente.
+                </p>
+                <div className="w-full bg-amber-200 rounded-full h-2 mb-3">
+                  <div
+                    className="bg-amber-500 h-2 rounded-full transition-all"
+                    style={{ width: `${porcentajeTiempo}%` }}
+                  />
+                </div>
+                <button
+                  onClick={() => setMostrarRespuesta(!mostrarRespuesta)}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-medium transition-colors"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  {mostrarRespuesta ? "Ocultar formulario" : "Responder observación"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* BANNER PLAZO VENCIDO */}
+        {estaObservada && plazoVencido && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-red-700 text-sm mb-1">
+                  Plazo de respuesta vencido
+                </p>
+                <p className="text-red-600 text-sm">
+                  El plazo de 24 horas para responder ha vencido.
+                  La solicitud será rechazada automáticamente en la próxima actualización del sistema.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FORMULARIO DE RESPUESTA */}
+        {estaObservada && mostrarRespuesta && !plazoVencido && (
+          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-amber-100 bg-amber-50">
+              <h2 className="font-semibold text-amber-800 flex items-center gap-2 text-sm">
+                <MessageSquare className="w-4 h-4" />
+                Responder observación de la ANH
+              </h2>
+            </div>
+
+            <div className="px-6 pt-4">
+              <p className="text-xs text-slate-500 mb-1">Observación de la ANH:</p>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 mb-4">
+                {solicitudActiva?.observacion_anh
+                  ? solicitudActiva.observacion_anh
+                  : <span className="italic text-amber-500">Sin texto adicional</span>
+                }
+              </div>
+            </div>
+
+            <form onSubmit={formRespuesta.handleSubmit(onResponder)} className="px-6 pb-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Tu respuesta / justificación *
+                </label>
+                <textarea
+                  {...formRespuesta.register("respuesta")}
+                  rows={4}
+                  placeholder="Explica o justifica la observación de la ANH (mínimo 10 caracteres)..."
+                  className={inputCls(!!formRespuesta.formState.errors.respuesta) + " resize-none"}
+                />
+                {formRespuesta.formState.errors.respuesta && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formRespuesta.formState.errors.respuesta.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Adjuntar documento (opcional)
+                </label>
+                <label className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border text-sm cursor-pointer transition-colors ${
+                  docRespuesta ? "border-green-300 bg-green-50" : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                }`}>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={e => setDocRespuesta(e.target.files?.[0] ?? null)}
+                  />
+                  {docRespuesta
+                    ? <><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-green-700 truncate">{docRespuesta.name}</span></>
+                    : <><FileText className="w-4 h-4 text-slate-400" /><span className="text-slate-500">PDF o imagen — máx 10MB</span></>
+                  }
+                </label>
+                {docRespuesta && (
+                  <button type="button" onClick={() => setDocRespuesta(null)}
+                    className="text-xs text-red-500 mt-1 hover:underline">
+                    Quitar archivo
+                  </button>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setMostrarRespuesta(false)}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={respondiendo}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors">
+                  {respondiendo
+                    ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <Send className="w-4 h-4" />
+                  }
+                  {respondiendo ? "Enviando..." : "Enviar respuesta"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* SOLICITUD ACTIVA */}
+        {solicitudActiva && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">
+                    Solicitud #{formatIdPublico(solicitudActiva.id_publico)}
+                  </p>
+                  <p className="text-slate-400 text-xs">
+                    {formatFecha(solicitudActiva.fecha_creacion, true)}
+                  </p>
+                </div>
+              </div>
+              <EstadoSolicitudBadge estado={solicitudActiva.estado} />
+            </div>
+
+            <div className="px-6 py-4 grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-slate-500 mb-0.5">Combustible</p>
+                <p className="text-sm font-medium text-slate-800">
+                  {COMBUSTIBLES[solicitudActiva.tipo_combustible] ?? solicitudActiva.tipo_combustible}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-0.5">Litros solicitados</p>
+                <p className="text-sm font-medium text-slate-800">{solicitudActiva.litros_solicitados} L</p>
+              </div>
+              {solicitudActiva.litros_aprobados && (
+                <div>
+                  <p className="text-xs text-slate-500 mb-0.5">Litros aprobados</p>
+                  <p className="text-sm font-medium text-green-600">{solicitudActiva.litros_aprobados} L</p>
+                </div>
+              )}
+              {solicitudActiva.fecha_expiracion && (
+                <div>
+                  <p className="text-xs text-slate-500 mb-0.5">Válido hasta</p>
+                  <p className="text-sm font-medium text-orange-600">
+                    {formatFecha(solicitudActiva.fecha_expiracion, true)}
+                  </p>
+                </div>
+              )}
+              {solicitudActiva.observacion_anh && (
+                <div className="col-span-2">
+                  <p className="text-xs text-slate-500 mb-1">Observación ANH</p>
+                  <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                    {solicitudActiva.observacion_anh}
+                  </p>
+                </div>
+              )}
+              {solicitudActiva.respuesta_consumidor && (
+                <div className="col-span-2">
+                  <p className="text-xs text-slate-500 mb-1">Tu respuesta enviada</p>
+                  <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                    {solicitudActiva.respuesta_consumidor}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-3 border-t border-slate-100 flex gap-2 flex-wrap">
+              {solicitudActiva.estado === "APROBADA" && (
+                <button onClick={descargarComprobante}
+                  className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">
+                  <Download className="w-3.5 h-3.5" /> Descargar comprobante
+                </button>
+              )}
+              <button onClick={() => descargarDeclaracion(solicitudActiva.id_publico)}
+                className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors">
+                <FileText className="w-3.5 h-3.5" /> Declaración jurada
+              </button>
+              {["PENDIENTE", "OBSERVADA"].includes(solicitudActiva.estado) && (
+                <button onClick={cancelar}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors">
+                  <X className="w-3.5 h-3.5" /> Cancelar solicitud
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* FORMULARIO NUEVA SOLICITUD */}
+        {mostrarForm && !solicitudActiva && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-800">Nueva solicitud de combustible</h2>
+            </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Tipo de combustible *
+                  </label>
+                  <select {...register("tipo_combustible")} className={inputCls(!!errors.tipo_combustible)}>
+                    <option value="">Seleccionar...</option>
+                    {Object.entries(COMBUSTIBLES).map(([k, v]) => (
+                      <option key={k} value={k}>{v}</option>
+                    ))}
+                  </select>
+                  {errors.tipo_combustible && <p className="text-red-500 text-xs mt-1">{errors.tipo_combustible.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Litros solicitados *
+                  </label>
+                  <input type="number" min={1} max={120}
+                    {...register("litros_solicitados", { valueAsNumber: true })}
+                    placeholder="Máx. 120 L"
+                    className={inputCls(!!errors.litros_solicitados)}
+                  />
+                  {errors.litros_solicitados && <p className="text-red-500 text-xs mt-1">{errors.litros_solicitados.message}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Uso / destino del combustible *
+                </label>
+                <textarea {...register("uso_combustible")} rows={3} maxLength={200}
+                  placeholder="Describe para qué usarás el combustible..."
+                  className={inputCls(!!errors.uso_combustible) + " resize-none"}
+                />
+                {errors.uso_combustible && <p className="text-red-500 text-xs mt-1">{errors.uso_combustible.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Documento justificativo (opcional)
+                </label>
+                <label className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border text-sm cursor-pointer transition-colors ${
+                  docJustificativo ? "border-green-300 bg-green-50" : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                }`}>
+                  <input type="file" accept="image/*,application/pdf" className="hidden"
+                    onChange={e => setDocJustificativo(e.target.files?.[0] ?? null)} />
+                  {docJustificativo
+                    ? <><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-green-700 truncate">{docJustificativo.name}</span></>
+                    : <><FileText className="w-4 h-4 text-slate-400" /><span className="text-slate-500">PDF, JPG o PNG — máx 10MB</span></>
+                  }
+                </label>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <p className="text-xs text-slate-600 leading-relaxed mb-3">
+                  <strong>Declaración jurada:</strong> Declaro bajo juramento que los datos
+                  proporcionados son verídicos y que el combustible solicitado será utilizado
+                  exclusivamente para el uso declarado.
+                </p>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" {...register("declaracion_jurada_confirmada")}
+                    className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600" />
+                  <span className="text-sm text-slate-700 font-medium">
+                    Confirmo y acepto la declaración jurada
+                  </span>
+                </label>
+                {errors.declaracion_jurada_confirmada && (
+                  <p className="text-red-500 text-xs mt-2">{errors.declaracion_jurada_confirmada.message}</p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => { setMostrarForm(false); reset(); }}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={creando}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-[#1a3a5c] hover:bg-[#152e4d] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors">
+                  {creando
+                    ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <FileText className="w-4 h-4" />
+                  }
+                  {creando ? "Enviando..." : "Enviar solicitud"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* HISTORIAL */}
+        {historial.length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <button onClick={() => setMostrarHistorial(!mostrarHistorial)}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-slate-400" />
+                <span className="font-semibold text-slate-700">Historial ({historial.length})</span>
+              </div>
+              {mostrarHistorial ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </button>
+            {mostrarHistorial && (
+              <div className="border-t border-slate-100 divide-y divide-slate-100">
+                {historial.map(s => (
+                  <div key={s.id_publico} className="px-6 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">
+                        #{formatIdPublico(s.id_publico)} — {COMBUSTIBLES[s.tipo_combustible]} {s.litros_solicitados}L
+                      </p>
+                      <p className="text-xs text-slate-400">{formatFecha(s.fecha_creacion)}</p>
+                    </div>
+                    <EstadoSolicitudBadge estado={s.estado} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ESTADO VACÍO */}
+        {!solicitudActiva && !mostrarForm && historial.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 py-12 text-center">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-blue-400" />
+            </div>
+            <h3 className="text-slate-700 font-semibold mb-2">Sin solicitudes</h3>
+            <p className="text-slate-500 text-sm mb-6">
+              No tienes solicitudes registradas. Crea tu primera solicitud de combustible.
+            </p>
+            <button onClick={() => setMostrarForm(true)}
+              className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+              <Plus className="w-4 h-4" /> Nueva solicitud
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* PDF VIEWER */}
+      {pdfViewer === "declaracion" && solicitudActiva && (
+        <PDFViewer
+          titulo={"Declaración Jurada"}
+          onClose={() => setPdfViewer(null)}
+          fetchPDF={() => solicitudesService.getDeclaracionJuradaBlob(solicitudActiva.id_publico)}
+          onDescargar={() => descargarDeclaracion(solicitudActiva.id_publico)}
+        />
+      )}
+      {pdfViewer === "comprobante" && solicitudActiva && (
+        <PDFViewer
+          titulo={"Comprobante de Aprobación"}
+          onClose={() => setPdfViewer(null)}
+          fetchPDF={() => solicitudesService.getComprobanteBlob(solicitudActiva.id_publico)}
+          onDescargar={descargarComprobante}
+        />
+      )}
+
+    </Layout>
+  );
+}

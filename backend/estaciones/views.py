@@ -1,74 +1,161 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
-from rest_framework.exceptions import PermissionDenied
+# apps/estaciones/views.py
 
-from users.permissions import IsAdminOrANH, IsEstacionServicio
+from rest_framework import mixins, viewsets, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.filters import OrderingFilter, SearchFilter
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django_filters.rest_framework import DjangoFilterBackend
+
+from users.permissions import IsAdminOrANH
+
 from .models import EstacionServicio
 from .serializers import (
     EstacionServicioReadSerializer,
-    EstacionServicioWriteSerializer
+    EstacionServicioListSerializer,
+    EstacionServicioWriteSerializer,
+    EstacionCambiarEstadoSerializer,
 )
 
 
-class EstacionServicioViewSet(ModelViewSet):
+class EstacionServicioViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    API para gestionar estaciones de servicio.
+
+    Acciones disponibles:
+      - list           : ADMIN, ANH y ESS (solo su estación)
+      - retrieve       : ADMIN, ANH y ESS (solo su estación)
+      - create         : solo ADMIN y ANH
+      - update         : solo ADMIN y ANH
+      - cambiar_estado : solo ADMIN y ANH
+
+    Acciones NO disponibles:
+      - destroy : las estaciones no se eliminan físicamente,
+                  se desactivan via cambiar_estado
+    """
 
     permission_classes = [IsAuthenticated]
 
-    # =========================
-    # Queryset seguro
-    # =========================
+    # ------------------------------------------------
+    # FILTROS
+    # ------------------------------------------------
+
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+        SearchFilter,
+    ]
+
+    filterset_fields  = ["estado", "departamento", "municipio"]
+    ordering_fields   = ["nombre", "codigo", "departamento", "fecha_creacion"]
+    ordering          = ["departamento", "nombre"]
+    search_fields     = ["nombre", "codigo", "municipio", "departamento"]
+
+    # ------------------------------------------------
+    # QUERYSET SEGÚN ROL
+    # ------------------------------------------------
+
     def get_queryset(self):
         user = self.request.user
 
+        base_qs = EstacionServicio.objects.select_related(
+            "creada_por"
+        ).prefetch_related(
+            "funcionarios__user"
+        )
+
+        # ADMIN y ANH ven todas las estaciones
         if user.tipo_usuario in ["ADMIN", "ANH"]:
-            return EstacionServicio.objects.all()
+            return base_qs
 
-        if user.tipo_usuario == "ESS":
-            return EstacionServicio.objects.filter(usuario=user)
+        # ESS solo ve su estación asignada via PerfilFuncionario
+        if (
+            user.tipo_usuario == "ESS"
+            and hasattr(user, "perfil_funcionario")
+            and user.perfil_funcionario.estacion_servicio
+        ):
+            return base_qs.filter(
+                pk=user.perfil_funcionario.estacion_servicio.pk
+            )
 
-        return EstacionServicio.objects.none()
+        return base_qs.none()
 
-    # =========================
-    # Serializer dinámico
-    # =========================
+    # ------------------------------------------------
+    # SERIALIZER DINÁMICO
+    # ------------------------------------------------
+
     def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
-            return EstacionServicioReadSerializer
-        return EstacionServicioWriteSerializer
 
-    # =========================
-    # Permisos por acción
-    # =========================
+        if self.action == "list":
+            return EstacionServicioListSerializer
+
+        if self.action in ("create", "update", "partial_update"):
+            return EstacionServicioWriteSerializer
+
+        if self.action == "cambiar_estado":
+            return EstacionCambiarEstadoSerializer
+
+        return EstacionServicioReadSerializer
+
+    # ------------------------------------------------
+    # PERMISOS DINÁMICOS
+    # ------------------------------------------------
+
     def get_permissions(self):
 
-        if self.request.method in SAFE_METHODS:
-            return [IsAuthenticated()]
+        if self.action in ("create", "update", "partial_update", "cambiar_estado"):
+            return [IsAuthenticated(), IsAdminOrANH()]
 
-        return [IsAuthenticated(), IsAdminOrANH()]
+        return [IsAuthenticated()]
 
-    # =========================
-    # Seguridad adicional
-    # =========================
+    # ------------------------------------------------
+    # CREAR ESTACIÓN
+    # ------------------------------------------------
+
     def perform_create(self, serializer):
-        user = self.request.user
+        serializer.save(creada_por=self.request.user)
 
-        if user.tipo_usuario not in ["ADMIN", "ANH"]:
-            raise PermissionDenied("No tiene permisos para crear estaciones.")
+    # ------------------------------------------------
+    # CAMBIAR ESTADO (ACTIVA / INACTIVA / SUSPENDIDA)
+    # Reemplaza el destroy — las estaciones no se
+    # eliminan físicamente, solo cambian de estado.
+    # ------------------------------------------------
 
-        serializer.save(creada_por=user)
+    @action(detail=True, methods=["post"], url_path="cambiar-estado")
+    def cambiar_estado(self, request, pk=None):
 
-    def perform_update(self, serializer):
-        user = self.request.user
+        estacion = self.get_object()
+        self.check_object_permissions(request, estacion)
 
-        if user.tipo_usuario not in ["ADMIN", "ANH"]:
-            raise PermissionDenied("No tiene permisos para modificar estaciones.")
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        serializer.save()
+        estado_anterior = estacion.estado
+        estado_nuevo    = serializer.validated_data["estado"]
 
-    def perform_destroy(self, instance):
-        user = self.request.user
+        if estado_anterior == estado_nuevo:
+            return Response(
+                {
+                    "detail": (
+                        f"La estación ya se encuentra en estado "
+                        f"{estacion.get_estado_display()}."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if user.tipo_usuario not in ["ADMIN", "ANH"]:
-            raise PermissionDenied("No tiene permisos para eliminar estaciones.")
+        estacion.estado = estado_nuevo
+        estacion.save(update_fields=["estado", "fecha_actualizacion"])
 
-        instance.delete()
+        return Response(
+            EstacionServicioReadSerializer(estacion).data,
+            status=status.HTTP_200_OK
+        )

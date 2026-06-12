@@ -1,120 +1,193 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import type { ReactNode } from "react";
-import { setAccessToken, clearAccessToken, getAccessToken } from "../services/authService";
+// src/context/AuthContext.tsx
 
-interface User {
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import type { ReactNode } from "react";
+import axios from "axios";
+
+// ------------------------------------------------
+// TIPOS
+// ------------------------------------------------
+
+export interface User {
   id: number;
-  username: string;
+  email: string;
+  nombre_completo: string;
+  nombres: string;
+  apellido_paterno: string;
+  apellido_materno: string;
   tipo_usuario: "ADMIN" | "ANH" | "ESS" | "CONS";
-  estacion_servicio: number | null;
+  estado_cuenta: string;
+  email_verificado: boolean;
+  date_joined: string;
+  access?: string;
 }
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  loading: boolean;
   user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  loading: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
-const BASE_URL = "http://127.0.0.1:8000";
+// ------------------------------------------------
+// AXIOS CONFIG
+// ------------------------------------------------
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+export const api = axios.create({
+  baseURL: "http://127.0.0.1:8000",
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" },
+});
 
-  // 🔥 Función para obtener usuario autenticado
-  const fetchUser = async (accessToken: string) => {
-    const response = await fetch(`${BASE_URL}/api/users/me/`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-    });
+// Rutas públicas que no deben disparar redirect
+const RUTAS_PUBLICAS = [
+  "/login",
+  "/registro",
+  "/verificar-email",
+  "/recuperar-password",
+  "/recuperar-password/confirmar",
+];
 
-    if (!response.ok) throw new Error("No se pudo obtener usuario");
+const esRutaPublica = () =>
+  RUTAS_PUBLICAS.some(r => window.location.pathname.startsWith(r));
 
-    const userData = await response.json();
-    setUser(userData);
-  };
+// URLs que nunca deben interceptarse
+const esUrlExcluida = (url?: string) =>
+  !url ||
+  url.includes("/auth/login/") ||
+  url.includes("/auth/refresh/") ||
+  url.includes("/auth/logout/");
 
-  // 🔥 Restaurar sesión al cargar la app
-  useEffect(() => {
-    const restoreSession = async () => {
+// ------------------------------------------------
+// INTERCEPTOR — renovar token automáticamente
+// ------------------------------------------------
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      !esUrlExcluida(original?.url)
+    ) {
+      original._retry = true;
       try {
-        const response = await fetch(`${BASE_URL}/api/refresh/`, {
-          method: "POST",
-          credentials: "include",
-        });
-
-        if (!response.ok) throw new Error();
-
-        const data = await response.json();
-        setAccessToken(data.access);
-
-        await fetchUser(data.access);
-
-        setIsAuthenticated(true);
+        await axios.post(
+          "http://127.0.0.1:8000/api/users/auth/refresh/",
+          {},
+          { withCredentials: true }
+        );
+        return api(original);
       } catch {
-        clearAccessToken();
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
+        if (!esRutaPublica()) {
+          window.location.href = "/login";
+        }
       }
-    };
+    }
+    return Promise.reject(error);
+  }
+);
 
-    restoreSession();
+// ------------------------------------------------
+// CONTEXTO
+// ------------------------------------------------
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user,    setUser]    = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await api.get("/api/users/me/");
+      setUser(res.data);
+    } catch {
+      setUser(null);
+    }
   }, []);
 
-  const login = async (username: string, password: string) => {
-    const response = await fetch(`${BASE_URL}/api/login/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ username, password }),
-    });
+  // Verificar sesión al cargar — solo si no estamos en ruta pública
+  useEffect(() => {
+    if (esRutaPublica()) {
+      setLoading(false);
+      return;
+    }
+    refreshUser().finally(() => setLoading(false));
+  }, [refreshUser]);
 
-    if (!response.ok) return false;
+  const login = async (email: string, password: string) => {
+    // 1. Limpiar header con token expirado
+    delete api.defaults.headers.common["Authorization"];
 
-    const data = await response.json();
-    setAccessToken(data.access);
+    // 2. Limpiar cookies de sesión anterior usando axios directo
+    //    para evitar que el interceptor interfiera
+    try {
+      await axios.post(
+        "http://127.0.0.1:8000/api/users/auth/logout/",
+        {},
+        { withCredentials: true }
+      );
+    } catch {
+      // ignorar — las cookies pueden ya estar expiradas
+    }
 
-    await fetchUser(data.access);
+    // 3. Hacer login
+    const res = await api.post("/api/users/auth/login/", { email, password });
 
-    setIsAuthenticated(true);
-    return true;
+    // 4. Guardar access token
+    if (res.data.access) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${res.data.access}`;
+    }
+
+    // 5. Cargar datos del usuario
+    const meRes = await api.get("/api/users/me/");
+    setUser(meRes.data);
   };
 
   const logout = async () => {
-    const accessToken = getAccessToken(); // si tienes helper
-
-    await fetch(`${BASE_URL}/api/logout/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-    });
-
-  clearAccessToken();
-  setUser(null);
-  setIsAuthenticated(false);
-};
+    try {
+      await axios.post(
+        "http://127.0.0.1:8000/api/users/auth/logout/",
+        {},
+        { withCredentials: true }
+      );
+    } catch {
+      // ignorar errores al cerrar sesión
+    } finally {
+      setUser(null);
+      delete api.defaults.headers.common["Authorization"];
+    }
+  };
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, loading, user, login, logout }}
+      value={{
+        user,
+        loading,
+        isAuthenticated: !!user,
+        login,
+        logout,
+        refreshUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used inside AuthProvider");
-  return context;
-};
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  return ctx;
+}

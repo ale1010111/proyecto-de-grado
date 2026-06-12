@@ -1,91 +1,191 @@
+# apps/consumidores/models.py
+
 from django.db import models
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from estaciones.models import EstacionServicio
-
+from django.utils import timezone
 
 
 class ConsumidorPerfil(models.Model):
+
+    class EstadoIdentidad(models.TextChoices):
+        PENDIENTE   = "PENDIENTE",   "Pendiente"
+        EN_REVISION = "EN_REVISION", "En revisión"
+        VERIFICADO  = "VERIFICADO",  "Verificado"
+        RECHAZADO   = "RECHAZADO",   "Rechazado"
+
+    class EstadoAlerta(models.TextChoices):
+        NORMAL      = "NORMAL",      "Normal"
+        EN_REVISION = "EN_REVISION", "En revisión por repetitividad"
+        BLOQUEADO   = "BLOQUEADO",   "Bloqueado"
+
+    class ActividadEconomica(models.TextChoices):
+        AGRICULTURA  = "AGRICULTURA",  "Agricultura / Ganadería"
+        TRANSPORTE   = "TRANSPORTE",   "Transporte"
+        INDUSTRIA    = "INDUSTRIA",    "Industria / Manufactura"
+        PESCA        = "PESCA",        "Pesca"
+        CONSTRUCCION = "CONSTRUCCION", "Construcción"
+        DOMESTICO    = "DOMESTICO",    "Uso doméstico"
+        COMERCIO     = "COMERCIO",     "Comercio"
+        MINERIA      = "MINERIA",      "Minería"
+        OTRO         = "OTRO",         "Otro"
+
+    # Relación con User
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='consumidor_perfil',
+        related_name="consumidor",
         verbose_name="Usuario"
     )
 
-    estacion_servicio = models.ForeignKey(
-        EstacionServicio,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="consumidores",
-        verbose_name="Estación de Servicio"
+    # Datos personales
+    fecha_nacimiento = models.DateField(verbose_name="Fecha de nacimiento")
+
+    celular = models.CharField(
+        max_length=20, blank=True, default="", verbose_name="Celular"
+    )
+    celular_verificado = models.BooleanField(
+        default=False, verbose_name="Celular verificado"
     )
 
-    ci = models.CharField(
-        max_length=20,
-        unique=True,
-        null=True,
-        blank=True,
-        verbose_name="Cédula de Identidad"
+    # Ubicación via catálogos
+    departamento = models.ForeignKey(
+        "catalogos.Departamento",
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="consumidores", verbose_name="Departamento"
     )
-
-    telefono = models.CharField(
-        max_length=20,
-        null=True,
-        blank=True,
-        verbose_name="Teléfono"
+    provincia = models.ForeignKey(
+        "catalogos.Provincia",
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="consumidores", verbose_name="Provincia"
     )
-
+    municipio = models.ForeignKey(
+        "catalogos.Municipio",
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="consumidores", verbose_name="Municipio"
+    )
     direccion = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        verbose_name="Dirección"
+        max_length=100, blank=True, default="", verbose_name="Dirección"
     )
 
-    fecha_nacimiento = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="Fecha de nacimiento"
+    # Actividad económica
+    actividad = models.CharField(
+        max_length=20,
+        choices=ActividadEconomica.choices,
+        blank=True, default="",
+        verbose_name="Actividad económica"
     )
 
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    # Estado de identidad
+    estado_identidad = models.CharField(
+        max_length=20,
+        choices=EstadoIdentidad.choices,
+        default=EstadoIdentidad.PENDIENTE,
+        db_index=True,
+        verbose_name="Estado de identidad"
+    )
+
+    # Control de repetitividad
+    alerta_repetitividad = models.CharField(
+        max_length=20,
+        choices=EstadoAlerta.choices,
+        default=EstadoAlerta.NORMAL,
+        db_index=True,
+        verbose_name="Alerta de repetitividad"
+    )
+    fecha_alerta = models.DateTimeField(
+        null=True, blank=True, verbose_name="Fecha de alerta"
+    )
+    motivo_bloqueo = models.TextField(
+        blank=True, default="", verbose_name="Motivo de bloqueo"
+    )
+
+    # Auditoría
+    fecha_creacion      = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        verbose_name = "Perfil de Consumidor"
-        verbose_name_plural = "Perfiles de Consumidores"
-        indexes = [
-            models.Index(fields=['ci']),
-        ]
-
-    # =========================
-    # VALIDACIONES DE NEGOCIO
-    # =========================
-    def clean(self):
-        # Solo usuarios tipo CONSUMIDOR pueden tener este perfil
-        if self.user.tipo_usuario != self.user.TipoUsuario.CONSUMIDOR:
-            raise ValidationError(
-                "Solo los usuarios tipo CONSUMIDOR pueden tener perfil de consumidor."
+    def es_mayor_de_edad(self) -> bool:
+        hoy = timezone.now().date()
+        edad = (
+            hoy.year - self.fecha_nacimiento.year
+            - (
+                (hoy.month, hoy.day)
+                < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
             )
+        )
+        return edad >= 18
 
-    def perfil_completo(self):
-        """
-        Método utilitario para verificar si el perfil está completo.
-        """
-        return all([
-            self.ci,
-            self.telefono,
-            self.direccion,
-            self.fecha_nacimiento
-        ])
-
-    def save(self, *args, **kwargs):
-        self.full_clean()  # fuerza validaciones siempre
-        super().save(*args, **kwargs)
+    def esta_bloqueado(self) -> bool:
+        return self.alerta_repetitividad == self.EstadoAlerta.BLOQUEADO
 
     def __str__(self):
-        return f"Perfil de {self.user.username}"
+        return (
+            f"{self.user.nombres} {self.user.apellido_paterno} "
+            f"— {self.get_estado_identidad_display()}"
+        )
 
-#
+    class Meta:
+        verbose_name        = "Perfil Consumidor"
+        verbose_name_plural = "Perfiles Consumidor"
+        ordering            = ["-fecha_creacion"]
+
+
+class DocumentoIdentidad(models.Model):
+
+    class TipoDocumento(models.TextChoices):
+        CI  = "CI",  "Cédula de Identidad (CI)"
+        CIE = "CIE", "Cédula de Identidad de Extranjero (CIE)"
+
+    perfil = models.ForeignKey(
+        ConsumidorPerfil,
+        on_delete=models.CASCADE,
+        related_name="documentos",
+        verbose_name="Perfil consumidor"
+    )
+
+    tipo_documento = models.CharField(
+        max_length=20,
+        choices=TipoDocumento.choices,
+        verbose_name="Tipo de documento"
+    )
+    numero_documento = models.CharField(
+        max_length=30, unique=True, verbose_name="Número de documento"
+    )
+    complemento_documento = models.CharField(
+        max_length=10, blank=True, default="", verbose_name="Complemento"
+    )
+
+    # Fotografías del documento
+    anverso = models.ImageField(
+        upload_to="documentos/identidad/anverso/",
+        verbose_name="Anverso del documento"
+    )
+    reverso = models.ImageField(
+        upload_to="documentos/identidad/reverso/",
+        verbose_name="Reverso del documento"
+    )
+    foto_sosteniendo = models.ImageField(
+        upload_to="documentos/identidad/sosteniendo/",
+        null=True,
+        blank=True,
+        verbose_name="Foto sosteniendo el documento",
+        help_text=(
+            "Fotografía del solicitante sosteniendo su documento "
+            "de identidad de frente. Requerida para nuevos registros."
+        )
+    )
+
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_tipo_documento_display()} — {self.numero_documento}"
+
+    class Meta:
+        verbose_name        = "Documento de Identidad"
+        verbose_name_plural = "Documentos de Identidad"
+        ordering            = ["-fecha_subida"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["perfil", "tipo_documento"],
+                name="unique_tipo_documento_por_perfil"
+            )
+        ]

@@ -1,130 +1,375 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
-from rest_framework.exceptions import PermissionDenied
+# apps/solicitudes/views.py
+
+from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from users.permissions import (
-    IsAdminOrANH,
-    IsEstacionServicio,
-    IsConsumidor
-)
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Solicitud
 from .serializers import (
-    SolicitudReadSerializer,
-    SolicitudWriteSerializer
+    SolicitudSerializer,
+    SolicitudListSerializer,
+    SolicitudCreateSerializer,
+    SolicitudAprobarSerializer,
+    SolicitudRevisionSerializer,
+    SolicitudDespacharSerializer,
 )
 
+from .services.aprobar_solicitud import aprobar_solicitud
+from .services.despachar_solicitud import despachar_solicitud
+from .services.observar_solicitud import observar_solicitud, responder_observacion
+from .services.rechazar_solicitud import rechazar_solicitud
 
-class SolicitudViewSet(ModelViewSet):
+from .permissions import (
+    EsUsuarioANH,
+    EsConsumidor,
+    EsEstacionAsignada,
+)
 
+from .filters import SolicitudFilter
+
+
+class SolicitudViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+
+    queryset           = Solicitud.objects.none()
     permission_classes = [IsAuthenticated]
+    lookup_field       = "id_publico"
 
-    # =========================
-    # Queryset seguro
-    # =========================
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = SolicitudFilter
+
+    ordering_fields = [
+        "fecha_creacion", "fecha_aprobacion",
+        "fecha_despacho", "litros_solicitados", "litros_aprobados",
+    ]
+    ordering = ["-fecha_creacion"]
+
+    search_fields = [
+        "id_publico",
+        "consumidor__user__nombres",
+        "consumidor__user__apellido_paterno",
+        "consumidor__documentos__numero_documento",
+    ]
+
+    # ------------------------------------------------
+    # SERIALIZER DINÁMICO
+    # ------------------------------------------------
+
+    def get_serializer_class(self):
+        if self.action == "list":                         return SolicitudListSerializer
+        if self.action == "create":                       return SolicitudCreateSerializer
+        if self.action == "aprobar":                      return SolicitudAprobarSerializer
+        if self.action in ("observar", "rechazar", "cancelar"): return SolicitudRevisionSerializer
+        if self.action == "despachar":                    return SolicitudDespacharSerializer
+        return SolicitudSerializer
+
+    # ------------------------------------------------
+    # PERMISOS DINÁMICOS
+    # ------------------------------------------------
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [IsAuthenticated(), EsConsumidor()]
+        if self.action in ("aprobar", "observar", "rechazar"):
+            return [IsAuthenticated(), EsUsuarioANH()]
+        if self.action in ("cancelar", "responder_observacion"):
+            return [IsAuthenticated(), EsConsumidor()]
+        if self.action == "despachar":
+            return [IsAuthenticated(), EsEstacionAsignada()]
+        return [IsAuthenticated()]
+
+    # ------------------------------------------------
+    # QUERYSET SEGÚN ROL
+    # ------------------------------------------------
+
     def get_queryset(self):
         user = self.request.user
-
         base_qs = Solicitud.objects.select_related(
-            "consumidor__user",
-            "estacion_servicio"
+            "consumidor", "estacion_servicio",
+            "creado_por", "aprobado_por", "despachado_por",
         )
-
-        if user.tipo_usuario in ["ADMIN", "ANH"]:
+        if user.tipo_usuario in ["ANH", "ADMIN"]:
             return base_qs
-
-        if user.tipo_usuario == "ESS":
+        if hasattr(user, "consumidor"):
+            return base_qs.filter(consumidor=user.consumidor)
+        if hasattr(user, "perfil_funcionario") and user.perfil_funcionario.estacion_servicio:
             return base_qs.filter(
-                estacion_servicio=user.estacion
+                estacion_servicio=user.perfil_funcionario.estacion_servicio
+            )
+        return base_qs.none()
+
+    # ------------------------------------------------
+    # HELPERS
+    # ------------------------------------------------
+
+    def _get_solicitud(self, id_publico):
+        return get_object_or_404(self.get_queryset(), id_publico=id_publico)
+
+    def _manejar_error_negocio(self, exc):
+        if isinstance(exc, DjangoValidationError):
+            raise ValidationError(detail=exc.messages)
+        raise exc
+
+    # ------------------------------------------------
+    # CREAR SOLICITUD (CONSUMIDOR)
+    # ------------------------------------------------
+
+    def create(self, request, *args, **kwargs):
+        if not hasattr(request.user, "consumidor"):
+            raise PermissionDenied("Solo los consumidores pueden crear solicitudes.")
+
+        consumidor = request.user.consumidor
+
+        if consumidor.esta_bloqueado():
+            raise PermissionDenied(
+                "Tu cuenta está bloqueada por repetitividad. "
+                "Contacta a la ANH para más información."
             )
 
-        if user.tipo_usuario == "CONS":
-            return base_qs.filter(
-                consumidor__user=user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        from django.utils import timezone
+
+        try:
+            solicitud = Solicitud.objects.create(
+                consumidor             = consumidor,
+                creado_por             = request.user,
+                tipo_combustible       = serializer.validated_data["tipo_combustible"],
+                litros_solicitados     = serializer.validated_data["litros_solicitados"],
+                uso_combustible        = serializer.validated_data.get("uso_combustible", ""),
+                documento_justificativo = serializer.validated_data.get("documento_justificativo"),
+                declaracion_jurada_confirmada = serializer.validated_data.get(
+                    "declaracion_jurada_confirmada", False
+                ),
+                fecha_declaracion_jurada = timezone.now(),
+                departamento = consumidor.departamento,
+                provincia    = consumidor.provincia,
+                municipio    = consumidor.municipio,
+                direccion    = consumidor.direccion,
+                actividad    = consumidor.actividad,
             )
-
-        return Solicitud.objects.none()
-
-    # =========================
-    # Serializer dinámico
-    # =========================
-    def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
-            return SolicitudReadSerializer
-        return SolicitudWriteSerializer
-
-    # =========================
-    # Permisos por acción
-    # =========================
-    def perform_create(self, serializer):
-        user = self.request.user
-
-        if user.tipo_usuario != "CONS":
-            raise PermissionDenied("Solo consumidores pueden crear solicitudes.")
-
-        serializer.save()
-
-    def perform_update(self, serializer):
-        user = self.request.user
-
-        if user.tipo_usuario not in ["ADMIN", "ANH", "ESS"]:
-            raise PermissionDenied("No tiene permisos para modificar solicitudes.")
-
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        raise PermissionDenied("Las solicitudes no pueden eliminarse.")
-
-    @action(detail=True, methods=["post"])
-    def cambiar_estado(self, request, pk=None):
-
-        solicitud = self.get_object()
-        user = request.user
-        nuevo_estado = request.data.get("estado")
-
-        # =========================
-        # Validar rol
-        # =========================
-        if user.tipo_usuario not in ["ADMIN", "ANH", "ESS"]:
-            return Response(
-                {"detail": "No tiene permisos para cambiar estado."},
-                status=status.HTTP_403_FORBIDDEN
+        except DjangoValidationError as e:
+            self._manejar_error_negocio(e)
+        except IntegrityError:
+            raise ValidationError(
+                "Ya tienes una solicitud activa (pendiente, observada o aprobada). "
+                "Debes esperar a que sea procesada antes de crear una nueva."
             )
-
-        # ESS solo puede modificar solicitudes de su estación
-        if user.tipo_usuario == "ESS":
-            if solicitud.estacion_servicio.usuario != user:
-                return Response(
-                    {"detail": "No puede modificar solicitudes de otra estación."},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
-        # =========================
-        # Validar transición
-        # =========================
-        if solicitud.estado != "PENDIENTE":
-            return Response(
-                {"detail": "Solo solicitudes pendientes pueden modificarse."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if nuevo_estado not in ["APROBADA", "RECHAZADA"]:
-            return Response(
-                {"detail": "Estado inválido."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # =========================
-        # Aplicar cambio
-        # =========================
-        solicitud.estado = nuevo_estado
-        solicitud.aprobado_por = user
-        solicitud.save()
 
         return Response(
-            {"detail": f"Solicitud {nuevo_estado.lower()} correctamente."},
-            status=status.HTTP_200_OK
+            SolicitudSerializer(solicitud).data,
+            status=status.HTTP_201_CREATED
         )
+
+    # ------------------------------------------------
+    # APROBAR SOLICITUD (ANH)
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["post"])
+    def aprobar(self, request, id_publico=None):
+        solicitud = self._get_solicitud(id_publico)
+        self.check_object_permissions(request, solicitud)
+
+        serializer = self.get_serializer(
+            data=request.data,
+            context={"solicitud": solicitud}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            solicitud = aprobar_solicitud(
+                solicitud_id              = solicitud.id,
+                usuario_aprobador         = request.user,
+                estacion_servicio         = serializer.validated_data["estacion_servicio"],
+                litros_aprobados          = serializer.validated_data["litros_aprobados"],
+                tipo_combustible_aprobado = serializer.validated_data["tipo_combustible_aprobado"],
+                observacion_anh           = serializer.validated_data.get("observacion_anh", ""),
+            )
+        except DjangoValidationError as e:
+            self._manejar_error_negocio(e)
+
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_200_OK)
+
+    # ------------------------------------------------
+    # OBSERVAR SOLICITUD (ANH)
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["post"])
+    def observar(self, request, id_publico=None):
+        solicitud = self._get_solicitud(id_publico)
+        self.check_object_permissions(request, solicitud)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            solicitud = observar_solicitud(
+                solicitud       = solicitud,
+                usuario         = request.user,
+                observacion_anh = serializer.validated_data["observacion_anh"],
+            )
+        except DjangoValidationError as e:
+            self._manejar_error_negocio(e)
+
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_200_OK)
+
+    # ------------------------------------------------
+    # RESPONDER OBSERVACIÓN (CONSUMIDOR)
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["post"], url_path="responder-observacion")
+    def responder_observacion(self, request, id_publico=None):
+        """
+        El consumidor responde la observación de la ANH.
+        La solicitud vuelve a PENDIENTE si el plazo no ha vencido.
+        Acepta un documento adjunto opcional (multipart/form-data).
+        """
+        solicitud = self._get_solicitud(id_publico)
+
+        if not hasattr(request.user, "consumidor"):
+            raise PermissionDenied("Solo los consumidores pueden responder observaciones.")
+
+        if solicitud.consumidor != request.user.consumidor:
+            raise PermissionDenied("No tienes permiso para responder esta solicitud.")
+
+        respuesta = request.data.get("respuesta", "").strip()
+        documento = request.FILES.get("documento_respuesta", None)
+
+        try:
+            solicitud = responder_observacion(
+                solicitud  = solicitud,
+                usuario    = request.user,
+                respuesta  = respuesta,
+                documento  = documento,
+            )
+        except DjangoValidationError as e:
+            self._manejar_error_negocio(e)
+
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_200_OK)
+
+    # ------------------------------------------------
+    # RECHAZAR SOLICITUD (ANH)
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["post"])
+    def rechazar(self, request, id_publico=None):
+        solicitud = self._get_solicitud(id_publico)
+        self.check_object_permissions(request, solicitud)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            solicitud = rechazar_solicitud(
+                solicitud       = solicitud,
+                usuario         = request.user,
+                observacion_anh = serializer.validated_data["observacion_anh"],
+            )
+        except DjangoValidationError as e:
+            self._manejar_error_negocio(e)
+
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_200_OK)
+
+    # ------------------------------------------------
+    # DESPACHAR SOLICITUD (ESTACIÓN)
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["post"])
+    def despachar(self, request, id_publico=None):
+        solicitud = self._get_solicitud(id_publico)
+        self.check_object_permissions(request, solicitud)
+
+        serializer = self.get_serializer(
+            data=request.data,
+            context={"solicitud": solicitud}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            solicitud = despachar_solicitud(
+                solicitud          = solicitud,
+                usuario            = request.user,
+                litros_despachados = serializer.validated_data["litros_despachados"],
+                observacion        = serializer.validated_data.get("observacion", ""),
+            )
+        except DjangoValidationError as e:
+            self._manejar_error_negocio(e)
+
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_200_OK)
+
+    # ------------------------------------------------
+    # CANCELAR SOLICITUD (CONSUMIDOR)
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["post"])
+    def cancelar(self, request, id_publico=None):
+        solicitud = self._get_solicitud(id_publico)
+        self.check_object_permissions(request, solicitud)
+
+        if solicitud.consumidor != request.user.consumidor:
+            raise PermissionDenied("No puedes cancelar una solicitud que no te pertenece.")
+
+        if solicitud.estado not in [
+            Solicitud.EstadoSolicitud.PENDIENTE,
+            Solicitud.EstadoSolicitud.OBSERVADA,
+        ]:
+            raise ValidationError("Solo puedes cancelar solicitudes pendientes u observadas.")
+
+        solicitud.estado = Solicitud.EstadoSolicitud.CANCELADA
+        solicitud.save(update_fields=["estado", "fecha_actualizacion"])
+
+        return Response(SolicitudSerializer(solicitud).data, status=status.HTTP_200_OK)
+
+    # ------------------------------------------------
+    # DECLARACIÓN JURADA PDF
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["get"], url_path="declaracion-jurada")
+    def declaracion_jurada(self, request, id_publico=None):
+        solicitud = self._get_solicitud(id_publico)
+
+        from .services.generar_declaracion_jurada import generar_declaracion_jurada
+        from django.http import HttpResponse
+
+        pdf_bytes = generar_declaracion_jurada(solicitud)
+        nombre    = f"declaracion_jurada_{str(solicitud.id_publico)[:8].upper()}.pdf"
+
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{nombre}"'
+        return response
+
+    # ------------------------------------------------
+    # COMPROBANTE PDF
+    # ------------------------------------------------
+
+    @action(detail=True, methods=["get"], url_path="comprobante")
+    def comprobante(self, request, id_publico=None):
+        solicitud = self._get_solicitud(id_publico)
+
+        if solicitud.estado != Solicitud.EstadoSolicitud.APROBADA:
+            raise ValidationError(
+                "El comprobante solo está disponible para solicitudes aprobadas."
+            )
+
+        from .services.generar_comprobante import generar_comprobante
+        from django.http import HttpResponse
+
+        pdf_bytes = generar_comprobante(solicitud)
+        nombre    = f"comprobante_{str(solicitud.id_publico)[:8].upper()}.pdf"
+
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{nombre}"'
+        return response

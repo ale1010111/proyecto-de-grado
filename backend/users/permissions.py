@@ -1,41 +1,110 @@
+# apps/users/permissions.py
+
 from rest_framework.permissions import BasePermission
+from .models import User
 
 
-class IsAdmin(BasePermission):
+# ------------------------------------------------
+# BASE
+# Verificación completa de autenticación:
+# activo, no suspendido, no bloqueado.
+# Todos los permisos de rol heredan de aquí.
+# ------------------------------------------------
+
+class IsAuthenticatedActive(BasePermission):
+    """
+    Verifica que el usuario esté autenticado, activo,
+    no suspendido y no bloqueado por intentos fallidos.
+    Base para todos los permisos del sistema.
+    """
+
     def has_permission(self, request, view):
         return (
-            request.user.is_authenticated and
-            request.user.tipo_usuario == 'ADMIN'
+            bool(request.user and request.user.is_authenticated)
+            and request.user.is_active
+            and request.user.estado_cuenta == User.EstadoCuenta.ACTIVO
+            and not request.user.esta_bloqueado()
         )
 
 
-class IsANH(BasePermission):
+# ------------------------------------------------
+# PERMISO DINÁMICO POR ROL
+# Extiende IsAuthenticatedActive para incluir
+# verificación de bloqueo en todos los roles.
+# ------------------------------------------------
+
+class HasRole(IsAuthenticatedActive):
+    """
+    Permiso base dinámico por rol.
+    Hereda todas las verificaciones de IsAuthenticatedActive
+    y agrega validación de tipo de usuario.
+
+    Uso:
+        class MiPermiso(HasRole):
+            allowed_roles = [User.TipoUsuario.ANH]
+    """
+
+    allowed_roles: list = []
+
     def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and
-            request.user.tipo_usuario == 'ANH'
-        )
+
+        # Primero verificar autenticación y estado de cuenta
+        if not super().has_permission(request, view):
+            return False
+
+        return request.user.tipo_usuario in self.allowed_roles
 
 
-class IsEstacionServicio(BasePermission):
+# ------------------------------------------------
+# PERMISOS POR ROL
+# ------------------------------------------------
+
+class IsAdmin(HasRole):
+    """Solo administradores del sistema."""
+    allowed_roles = [User.TipoUsuario.ADMIN]
+
+
+class IsANH(HasRole):
+    """Solo personal ANH."""
+    allowed_roles = [User.TipoUsuario.ANH]
+
+
+class IsAdminOrANH(HasRole):
+    """Administradores y personal ANH."""
+    allowed_roles = [
+        User.TipoUsuario.ADMIN,
+        User.TipoUsuario.ANH,
+    ]
+
+
+class IsESS(HasRole):
+    """Solo personal de estación de servicio."""
+    allowed_roles = [User.TipoUsuario.ESS]
+
+
+class IsConsumidor(HasRole):
+    """
+    Solo consumidores con perfil activo.
+    Verifica además que el usuario tenga
+    ConsumidorPerfil asociado.
+    """
+    allowed_roles = [User.TipoUsuario.CONS]
+
     def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and
-            request.user.tipo_usuario == 'ESS'
-        )
+
+        if not super().has_permission(request, view):
+            return False
+
+        return hasattr(request.user, "consumidor")
 
 
-class IsConsumidor(BasePermission):
-    def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and
-            request.user.tipo_usuario == 'CONS'
-        )
-
-
-class IsAdminOrANH(BasePermission):
-    def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and
-            request.user.tipo_usuario in ['ADMIN', 'ANH']
-        )
+class IsAdminOrANHOrESS(HasRole):
+    """
+    Cualquier funcionario institucional.
+    Útil para vistas de solo lectura compartidas.
+    """
+    allowed_roles = [
+        User.TipoUsuario.ADMIN,
+        User.TipoUsuario.ANH,
+        User.TipoUsuario.ESS,
+    ]
