@@ -15,6 +15,8 @@ const RegistroConsumidor  = lazy(() => import("./pages/consumidor/Registro"));
 const VerificarPin        = lazy(() => import("./pages/consumidor/VerificarPin"));
 const MiSolicitud         = lazy(() => import("./pages/consumidor/MiSolicitud"));
 const MiPerfil            = lazy(() => import("./pages/consumidor/MiPerfil"));
+const RecuperarPassword   = lazy(() => import("./pages/RecuperarPassword"));
+const ConfirmarRecuperacion = lazy(() => import("./pages/ConfirmarRecuperacion"));
 
 // Páginas ANH/ADMIN
 const DashboardANH        = lazy(() => import("./pages/anh/Dashboard"));
@@ -71,6 +73,8 @@ function AppRoutes() {
         <Route path="/login"    element={<Login />} />
         <Route path="/registro" element={<RegistroConsumidor />} />
         <Route path="/verificar-email" element={<VerificarPin />} />
+        <Route path="/recuperar-password" element={<RecuperarPassword />} />
+        <Route path="/recuperar-password/confirmar" element={<ConfirmarRecuperacion />} />
         <Route path="/unauthorized"    element={<Unauthorized />} />
 
         {/* ---- REDIRECCIÓN POR ROL ---- */}

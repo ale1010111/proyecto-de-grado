@@ -25,7 +25,6 @@ class Solicitud(models.Model):
     class TipoCombustible(models.TextChoices):
         GASOLINA = "GASOLINA", "Gasolina"
         DIESEL   = "DIESEL",   "Diésel"
-        GNV      = "GNV",      "GNV"
 
     # ------------------------------------------------
     # IDENTIFICADOR PÚBLICO

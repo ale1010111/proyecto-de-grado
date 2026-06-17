@@ -1,0 +1,19 @@
+[
+  {"model": "catalogos.municipio", "pk": 38, "fields": {"provincia": 27,  "nombre": "Villa Tunari",          "codigo": "CB-CH-01"}},
+  {"model": "catalogos.municipio", "pk": 39, "fields": {"provincia": 38,  "nombre": "Achacachi",            "codigo": "LP-OM-01"}},
+  {"model": "catalogos.municipio", "pk": 40, "fields": {"provincia": 56,  "nombre": "Caranavi",             "codigo": "LP-CR-01"}},
+  {"model": "catalogos.municipio", "pk": 41, "fields": {"provincia": 44,  "nombre": "Viacha",               "codigo": "LP-IN-01"}},
+  {"model": "catalogos.municipio", "pk": 42, "fields": {"provincia": 51,  "nombre": "Copacabana",           "codigo": "LP-MK-01"}},
+  {"model": "catalogos.municipio", "pk": 43, "fields": {"provincia": 110, "nombre": "Yacuiba",              "codigo": "TJ-GC-01"}},
+  {"model": "catalogos.municipio", "pk": 44, "fields": {"provincia": 85,  "nombre": "Villazón",             "codigo": "PT-MO-01"}},
+  {"model": "catalogos.municipio", "pk": 45, "fields": {"provincia": 83,  "nombre": "Tupiza",               "codigo": "PT-SC-01"}},
+  {"model": "catalogos.municipio", "pk": 46, "fields": {"provincia": 77,  "nombre": "Llallagua",            "codigo": "PT-RB-01"}},
+  {"model": "catalogos.municipio", "pk": 47, "fields": {"provincia": 96,  "nombre": "Camiri",               "codigo": "SC-CO-01"}},
+  {"model": "catalogos.municipio", "pk": 48, "fields": {"provincia": 102, "nombre": "Puerto Suárez",        "codigo": "SC-GB-01"}},
+  {"model": "catalogos.municipio", "pk": 49, "fields": {"provincia": 101, "nombre": "San Ignacio de Velasco","codigo": "SC-VE-01"}},
+  {"model": "catalogos.municipio", "pk": 50, "fields": {"provincia": 109, "nombre": "Bermejo",              "codigo": "TJ-AR-01"}},
+  {"model": "catalogos.municipio", "pk": 51, "fields": {"provincia": 18,  "nombre": "Villa Serrano",        "codigo": "CH-BB-01"}},
+  {"model": "catalogos.municipio", "pk": 52, "fields": {"provincia": 34,  "nombre": "Punata",               "codigo": "CB-PU-01"}},
+  {"model": "catalogos.municipio", "pk": 53, "fields": {"provincia": 97,  "nombre": "Vallegrande",          "codigo": "SC-VA-01"}},
+  {"model": "catalogos.municipio", "pk": 54, "fields": {"provincia": 15,  "nombre": "Camargo",              "codigo": "CH-NC-01"}}
+]

@@ -26,11 +26,16 @@ class EstacionServicioAdmin(admin.ModelAdmin):
         "fecha_creacion",
     ]
 
-    list_filter  = ["estado", "departamento"]
+    list_filter  = ["estado", "municipio__provincia__departamento"]
 
-    search_fields = ["nombre", "codigo", "municipio", "departamento"]
+    search_fields = [
+        "nombre",
+        "codigo",
+        "municipio__nombre",
+        "municipio__provincia__departamento__nombre",
+    ]
 
-    ordering = ["departamento", "nombre"]
+    ordering = ["municipio__provincia__departamento__nombre", "nombre"]
 
     # ------------------------------------------------
     # DETALLE
@@ -41,7 +46,7 @@ class EstacionServicioAdmin(admin.ModelAdmin):
             "fields": ("nombre", "codigo")
         }),
         ("Ubicación", {
-            "fields": ("direccion", "municipio", "departamento")
+            "fields": ("direccion", "municipio")
         }),
         ("Estado", {
             "fields": ("estado",)
@@ -53,6 +58,23 @@ class EstacionServicioAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ["creada_por", "fecha_creacion", "fecha_actualizacion"]
+
+    # ------------------------------------------------
+    # OPTIMIZAR QUERIES EN LA LISTA
+    # ------------------------------------------------
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            "municipio__provincia__departamento", "creada_por"
+        )
+
+    # ------------------------------------------------
+    # MOSTRAR "departamento" (property) EN list_display
+    # ------------------------------------------------
+
+    @admin.display(description="Departamento")
+    def departamento(self, obj):
+        return obj.departamento
 
     # ------------------------------------------------
     # GUARDAR

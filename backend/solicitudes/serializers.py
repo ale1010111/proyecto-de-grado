@@ -152,6 +152,21 @@ class SolicitudListSerializer(serializers.ModelSerializer):
 # ------------------------------------------------
 
 class SolicitudCreateSerializer(serializers.ModelSerializer):
+    """
+    Al crear una solicitud, el consumidor indica su ubicación
+    actual (Departamento/Provincia/Municipio) y su Estación de
+    Servicio de preferencia (obligatoria, debe pertenecer al
+    municipio indicado).
+
+    No se asume la ubicación del ConsumidorPerfil (registrada
+    en su momento), ya que el consumidor puede haberse mudado
+    desde entonces.
+    """
+
+    departamento = serializers.PrimaryKeyRelatedField(queryset=[])
+    provincia    = serializers.PrimaryKeyRelatedField(queryset=[])
+    municipio    = serializers.PrimaryKeyRelatedField(queryset=[])
+    estacion_servicio = serializers.PrimaryKeyRelatedField(queryset=[])
 
     class Meta:
         model = Solicitud
@@ -162,7 +177,47 @@ class SolicitudCreateSerializer(serializers.ModelSerializer):
             "documento_justificativo",
             "documento_respuesta",
             "declaracion_jurada_confirmada",
+            "departamento",
+            "provincia",
+            "municipio",
+            "estacion_servicio",
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from catalogos.models import Departamento, Provincia, Municipio
+        from estaciones.models import EstacionServicio
+        self.fields["departamento"].queryset = Departamento.objects.all()
+        self.fields["provincia"].queryset    = Provincia.objects.all()
+        self.fields["municipio"].queryset    = Municipio.objects.all()
+        self.fields["estacion_servicio"].queryset = (
+            EstacionServicio.objects.filter(estado="ACTIVA")
+        )
+
+    def validate(self, attrs):
+        dep  = attrs.get("departamento")
+        prov = attrs.get("provincia")
+        mun  = attrs.get("municipio")
+        est  = attrs.get("estacion_servicio")
+
+        if prov and dep and prov.departamento_id != dep.id:
+            raise serializers.ValidationError({
+                "provincia": "La provincia no pertenece al departamento seleccionado."
+            })
+
+        if mun and prov and mun.provincia_id != prov.id:
+            raise serializers.ValidationError({
+                "municipio": "El municipio no pertenece a la provincia seleccionada."
+            })
+
+        if est and mun and est.municipio_id != mun.id:
+            raise serializers.ValidationError({
+                "estacion_servicio": (
+                    "La estación seleccionada no pertenece al municipio indicado."
+                )
+            })
+
+        return attrs
 
     def validate_litros_solicitados(self, value):
         if value <= 0:

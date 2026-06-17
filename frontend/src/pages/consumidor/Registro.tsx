@@ -9,6 +9,7 @@ import { authService } from "../../services/auth.service";
 import { catalogosService } from "../../services/catalogos.service";
 import type { Departamento, Provincia, Municipio } from "../../types/consumidor.types";
 import { ACTIVIDADES, TIPOS_DOCUMENTO } from "../../utils/constants";
+import { passwordSeguroSchema, PASSWORD_HELP_TEXT } from "../../utils/passwordSchema";
 import { Flame, ChevronRight, ChevronLeft, CheckCircle, AlertCircle, Upload, Eye, EyeOff } from "lucide-react";
 
 // ------------------------------------------------
@@ -38,17 +39,25 @@ const paso1Schema = z.object({
 });
 
 const paso2Schema = z.object({
-  email:       z.string().email("Email inválido"),
-  celular:     z.string().min(7, "Ingresa tu número de celular"),
+  email:        z.string().email("Email inválido"),
+  celular:      z.string().min(7, "Ingresa tu número de celular"),
   departamento: z.string().min(1, "Selecciona un departamento"),
-  provincia:   z.string().min(1, "Selecciona una provincia"),
-  municipio:   z.string().min(1, "Selecciona un municipio"),
-  actividad:   z.string().min(1, "Selecciona una actividad"),
-  direccion:   z.string().min(5, "Ingresa tu dirección").max(100),
-});
+  provincia:    z.string().min(1, "Selecciona una provincia"),
+  municipio:    z.string().min(1, "Selecciona un municipio"),
+  actividad:    z.string().min(1, "Selecciona una actividad"),
+  // Campo obligatorio solo cuando actividad === "OTRO"
+  actividad_otro: z.string().max(100, "Máximo 100 caracteres").optional(),
+  direccion:    z.string().min(5, "Ingresa tu dirección").max(100),
+}).refine(
+  (data) => data.actividad !== "OTRO" || (data.actividad_otro && data.actividad_otro.trim().length >= 3),
+  {
+    message: "Describe tu actividad (mínimo 3 caracteres)",
+    path: ["actividad_otro"],
+  }
+);
 
 const paso3Schema = z.object({
-  password:  z.string().min(8, "Mínimo 8 caracteres"),
+  password:  passwordSeguroSchema,
   password2: z.string().min(1, "Repite la contraseña"),
 }).refine(d => d.password === d.password2, {
   message: "Las contraseñas no coinciden",
@@ -101,9 +110,9 @@ function PasoIndicador({ actual }: { actual: number }) {
 
 export default function Registro() {
   const navigate = useNavigate();
-  const [paso, setPaso]         = useState(1);
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [paso, setPaso]       = useState(1);
+  const [error, setError]     = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Catálogos
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
@@ -132,6 +141,9 @@ export default function Registro() {
   const form1 = useForm<Paso1Data>({ resolver: zodResolver(paso1Schema) });
   const form2 = useForm<Paso2Data>({ resolver: zodResolver(paso2Schema) });
   const form3 = useForm<Paso3Data>({ resolver: zodResolver(paso3Schema) });
+
+  // Observar campo actividad para mostrar campo "Otro" condicionalmente
+  const actividadSeleccionada = form2.watch("actividad");
 
   const onChangeDepartamento = async (id: string) => {
     form2.setValue("provincia", "");
@@ -185,22 +197,30 @@ export default function Registro() {
       const formData = new FormData();
 
       // Paso 1
-      formData.append("tipo_documento",        datosPaso1.tipo_documento);
-      formData.append("numero_documento",       datosPaso1.numero_documento);
-      formData.append("complemento_documento",  datosPaso1.complemento_documento ?? "");
-      formData.append("nombres",                datosPaso1.nombres);
-      formData.append("apellido_paterno",       datosPaso1.apellido_paterno);
-      formData.append("apellido_materno",       datosPaso1.apellido_materno ?? "");
-      formData.append("fecha_nacimiento",       datosPaso1.fecha_nacimiento);
+      formData.append("tipo_documento",       datosPaso1.tipo_documento);
+      formData.append("numero_documento",      datosPaso1.numero_documento);
+      formData.append("complemento_documento", datosPaso1.complemento_documento ?? "");
+      formData.append("nombres",               datosPaso1.nombres);
+      formData.append("apellido_paterno",      datosPaso1.apellido_paterno);
+      formData.append("apellido_materno",      datosPaso1.apellido_materno ?? "");
+      formData.append("fecha_nacimiento",      datosPaso1.fecha_nacimiento);
 
       // Paso 2
-      formData.append("email",       datosPaso2.email);
-      formData.append("celular",     datosPaso2.celular);
+      formData.append("email",        datosPaso2.email);
+      formData.append("celular",      datosPaso2.celular);
       formData.append("departamento", datosPaso2.departamento);
-      formData.append("provincia",   datosPaso2.provincia);
-      formData.append("municipio",   datosPaso2.municipio);
-      formData.append("actividad",   datosPaso2.actividad);
-      formData.append("direccion",   datosPaso2.direccion);
+      formData.append("provincia",    datosPaso2.provincia);
+      formData.append("municipio",    datosPaso2.municipio);
+      formData.append("direccion",    datosPaso2.direccion);
+
+      // Si la actividad es "OTRO", enviar el texto libre como valor de actividad.
+      // El backend guarda el texto en el campo actividad directamente.
+      // En caso contrario enviar el valor del select (ej. "AGRICULTURA").
+      if (datosPaso2.actividad === "OTRO" && datosPaso2.actividad_otro) {
+        formData.append("actividad", datosPaso2.actividad_otro.trim());
+      } else {
+        formData.append("actividad", datosPaso2.actividad);
+      }
 
       // Paso 3
       formData.append("password",  pass3.password);
@@ -420,14 +440,41 @@ export default function Registro() {
                     {form2.formState.errors.municipio && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.municipio.message}</p>}
                   </div>
 
+                  {/* ACTIVIDAD — con campo "Otro" condicional (#8) */}
                   <div className="col-span-2">
                     <label className="block text-xs font-medium text-slate-600 mb-1">Actividad económica *</label>
                     <select {...form2.register("actividad")} className={selectClass(!!form2.formState.errors.actividad)}>
                       <option value="">Seleccionar...</option>
-                      {Object.entries(ACTIVIDADES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      {Object.entries(ACTIVIDADES).map(([k, v]) => (
+                        <option key={k} value={k}>{v}</option>
+                      ))}
                     </select>
                     {form2.formState.errors.actividad && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.actividad.message}</p>}
                   </div>
+
+                  {/* Campo de texto obligatorio cuando se selecciona "OTRO" */}
+                  {actividadSeleccionada === "OTRO" && (
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        Especifica tu actividad *
+                      </label>
+                      <input
+                        {...form2.register("actividad_otro")}
+                        placeholder="Describe tu actividad económica..."
+                        maxLength={100}
+                        className={inputClass(!!form2.formState.errors.actividad_otro)}
+                        autoFocus
+                      />
+                      {form2.formState.errors.actividad_otro && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {form2.formState.errors.actividad_otro.message}
+                        </p>
+                      )}
+                      <p className="text-xs text-slate-400 mt-1">
+                        Ejemplo: "Apicultura", "Artesanía", "Turismo"
+                      </p>
+                    </div>
+                  )}
 
                   <div className="col-span-2">
                     <label className="block text-xs font-medium text-slate-600 mb-1">Dirección *</label>
@@ -460,7 +507,10 @@ export default function Registro() {
                       {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  {form3.formState.errors.password && <p className="text-red-500 text-xs mt-1">{form3.formState.errors.password.message}</p>}
+                  {form3.formState.errors.password
+                    ? <p className="text-red-500 text-xs mt-1">{form3.formState.errors.password.message}</p>
+                    : <p className="text-xs text-slate-400 mt-1">{PASSWORD_HELP_TEXT}</p>
+                  }
                 </div>
 
                 <div>

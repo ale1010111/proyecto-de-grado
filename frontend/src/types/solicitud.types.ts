@@ -12,7 +12,7 @@ export type EstadoSolicitud =
 export type TipoCombustible =
   | "GASOLINA"
   | "DIESEL"
-  | "GNV";
+
 
 export interface Solicitud {
   id_publico:                    string;
@@ -82,4 +82,8 @@ export interface SolicitudCreate {
   declaracion_jurada_confirmada: boolean;
   documento_justificativo?:      File | null;
   documento_respuesta?:          File | null;
+  departamento:                  number;
+  provincia:                     number;
+  municipio:                     number;
+  estacion_servicio:             number;
 }

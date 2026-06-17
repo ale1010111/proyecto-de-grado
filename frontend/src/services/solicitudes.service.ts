@@ -29,6 +29,10 @@ export const solicitudesService = {
       "declaracion_jurada_confirmada",
       String(data.declaracion_jurada_confirmada)
     );
+    formData.append("departamento", String(data.departamento));
+    formData.append("provincia", String(data.provincia));
+    formData.append("municipio", String(data.municipio));
+    formData.append("estacion_servicio", String(data.estacion_servicio));
     if (data.documento_justificativo) {
       formData.append("documento_justificativo", data.documento_justificativo);
     }

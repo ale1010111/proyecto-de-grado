@@ -13,7 +13,7 @@ export const ESTADOS_SOLICITUD: Record<string, { label: string; color: string }>
 export const COMBUSTIBLES: Record<string, string> = {
   GASOLINA: "Gasolina",
   DIESEL:   "Diésel",
-  GNV:      "GNV",
+  
 };
 
 export const ACTIVIDADES: Record<string, string> = {
@@ -29,12 +29,19 @@ export const ACTIVIDADES: Record<string, string> = {
 };
 
 export const ALERTAS_CONSUMIDOR: Record<string, { label: string; color: string }> = {
-  NORMAL:      { label: "Normal",      color: "bg-green-100 text-green-700" },
-  EN_REVISION: { label: "En revisión", color: "bg-amber-100 text-amber-700" },
-  BLOQUEADO:   { label: "Bloqueado",   color: "bg-red-100 text-red-700"     },
+  NORMAL:      { label: "Normal",      color: "bg-slate-100 text-slate-500"  },
+  EN_REVISION: { label: "En revisión", color: "bg-orange-100 text-orange-700"},
+  BLOQUEADO:   { label: "Bloqueado",   color: "bg-red-100 text-red-700"      },
 };
 
 export const TIPOS_DOCUMENTO = [
   { value: "CI",  label: "Cédula de Identidad (CI)" },
   { value: "CIE", label: "Cédula de Identidad de Extranjero (CIE)" },
 ];
+
+export const ESTADOS_IDENTIDAD: Record<string, { label: string; color: string }> = {
+  PENDIENTE:   { label: "Pendiente",   color: "bg-amber-100 text-amber-700"  },
+  EN_REVISION: { label: "En revisión", color: "bg-blue-100 text-blue-700"    },
+  VERIFICADO:  { label: "Verificado",  color: "bg-green-100 text-green-700"  },
+  RECHAZADO:   { label: "Rechazado",   color: "bg-red-100 text-red-700"      },
+};

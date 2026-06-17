@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
-import { AlertaBadge, EstadoSolicitudBadge } from "../../components/ui/EstadoBadge";
+import { AlertaBadge, EstadoIdentidadBadge } from "../../components/ui/EstadoBadge";
 import { consumidoresService } from "../../services/consumidores.service";
 import type { ConsumidorPerfil } from "../../types/consumidor.types";
 import { formatFecha } from "../../utils/format";
@@ -174,7 +174,7 @@ export default function ConsumidoresANH() {
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-500">{c.municipio_nombre || "—"}</td>
                       <td className="px-4 py-3">
-                        <EstadoSolicitudBadge estado={c.estado_identidad} />
+                        <EstadoIdentidadBadge estado={c.estado_identidad} />
                       </td>
                       <td className="px-4 py-3">
                         <AlertaBadge alerta={c.alerta_repetitividad} />

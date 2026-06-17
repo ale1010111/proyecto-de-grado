@@ -26,6 +26,8 @@ export interface User {
   email_verificado: boolean;
   date_joined: string;
   access?: string;
+  municipio_id: number | null;
+  estacion_nombre: string | null;
 }
 
 interface AuthContextType {

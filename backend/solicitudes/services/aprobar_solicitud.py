@@ -65,7 +65,6 @@ def aprobar_solicitud(
         # Obtener configuración del sistema
         # -----------------------------------------
 
-        # Obtener configuración — siempre existe gracias a get_or_create
         config = ConfiguracionSistema.obtener()
 
         # -----------------------------------------
@@ -79,10 +78,39 @@ def aprobar_solicitud(
         )
 
         # -----------------------------------------
+        # Detectar modificaciones respecto a lo solicitado (#18)
+        # Se registran en la nota de auditoría para trazabilidad.
+        # -----------------------------------------
+
+        modificaciones = []
+
+        if tipo_combustible_aprobado != solicitud.tipo_combustible:
+            modificaciones.append(
+                f"combustible solicitado '{solicitud.tipo_combustible}' "
+                f"→ aprobado '{tipo_combustible_aprobado}'"
+            )
+
+        if litros_aprobados != solicitud.litros_solicitados:
+            modificaciones.append(
+                f"litros solicitados {solicitud.litros_solicitados} L "
+                f"→ aprobados {litros_aprobados} L"
+            )
+
+        # Construir nota de auditoría
+        if modificaciones:
+            nota_auditoria = (
+                f"Aprobado con modificación: {'; '.join(modificaciones)}."
+            )
+            if observacion_anh:
+                nota_auditoria += f" Observación: {observacion_anh}"
+        else:
+            nota_auditoria = observacion_anh
+
+        # -----------------------------------------
         # Registrar aprobación
         # -----------------------------------------
 
-        solicitud.estado                   = Solicitud.EstadoSolicitud.APROBADA
+        solicitud.estado                    = Solicitud.EstadoSolicitud.APROBADA
         solicitud.tipo_combustible_aprobado = tipo_combustible_aprobado
         solicitud.litros_aprobados          = litros_aprobados
         solicitud.estacion_servicio         = estacion_servicio
@@ -100,14 +128,14 @@ def aprobar_solicitud(
         solicitud.full_clean()
         solicitud.save()
 
-        # Registrar auditoría
+        # Registrar auditoría con nota de modificaciones
         from .registrar_auditoria import registrar_cambio_estado
         registrar_cambio_estado(
-            solicitud=solicitud,
-            estado_anterior=Solicitud.EstadoSolicitud.PENDIENTE,
-            estado_nuevo=Solicitud.EstadoSolicitud.APROBADA,
-            usuario=usuario_aprobador,
-            nota=observacion_anh,
+            solicitud       = solicitud,
+            estado_anterior = Solicitud.EstadoSolicitud.PENDIENTE,
+            estado_nuevo    = Solicitud.EstadoSolicitud.APROBADA,
+            usuario         = usuario_aprobador,
+            nota            = nota_auditoria,
         )
 
         # Notificar al consumidor

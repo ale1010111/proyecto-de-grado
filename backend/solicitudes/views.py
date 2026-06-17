@@ -97,8 +97,21 @@ class SolicitudViewSet(
     def get_queryset(self):
         user = self.request.user
         base_qs = Solicitud.objects.select_related(
-            "consumidor", "estacion_servicio",
-            "creado_por", "aprobado_por", "despachado_por",
+            # Consumidor + su usuario (evita N+1 al llamar consumidor.user.nombre)
+            "consumidor__user",
+            # Estación + municipio
+            "estacion_servicio__municipio__provincia__departamento",
+            # Usuarios relacionados
+            "creado_por",
+            "aprobado_por",
+            "despachado_por",
+            # Ubicación geográfica de la solicitud
+            "departamento",
+            "provincia",
+            "municipio",
+        ).prefetch_related(
+            # Auditoría: se muestra en el detalle
+            "auditoria__usuario",
         )
         if user.tipo_usuario in ["ANH", "ADMIN"]:
             return base_qs
@@ -155,9 +168,15 @@ class SolicitudViewSet(
                     "declaracion_jurada_confirmada", False
                 ),
                 fecha_declaracion_jurada = timezone.now(),
-                departamento = consumidor.departamento,
-                provincia    = consumidor.provincia,
-                municipio    = consumidor.municipio,
+                # Ubicación y estación: las elige el consumidor en el
+                # formulario (puede diferir de su perfil registrado).
+                departamento = serializer.validated_data["departamento"],
+                provincia    = serializer.validated_data["provincia"],
+                municipio    = serializer.validated_data["municipio"],
+                estacion_servicio = serializer.validated_data["estacion_servicio"],
+                # Dirección y actividad económica siguen viniendo del
+                # perfil del consumidor (no se piden de nuevo en cada
+                # solicitud).
                 direccion    = consumidor.direccion,
                 actividad    = consumidor.actividad,
             )

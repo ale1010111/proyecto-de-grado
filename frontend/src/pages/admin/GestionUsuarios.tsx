@@ -5,14 +5,20 @@ import Layout from "../../components/Layout";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../context/AuthContext";
 import { estacionesService } from "../../services/estaciones.service";
+import { authService } from "../../services/auth.service";
 import type { EstacionServicio } from "../../types/estacion.types";
+import { passwordSeguroSchema, PASSWORD_HELP_TEXT } from "../../utils/passwordSchema";
+import { formatFecha } from "../../utils/format";
 import {
   Users, Plus, Search, RefreshCw, AlertCircle,
   CheckCircle, Edit2, UserCheck, UserX, X, Shield,
-} from "lucide-react"
+  Eye, KeyRound, ChevronLeft, ChevronRight,
+} from "lucide-react";
+
 // ------------------------------------------------
 // TIPOS
 // ------------------------------------------------
+
 interface Funcionario {
   id:               number;
   email:            string;
@@ -49,9 +55,29 @@ const tipoLabel: Record<string, string> = {
   ESS:   "Estación de Servicio",
 };
 
+const tipoColor: Record<string, string> = {
+  ADMIN: "bg-purple-100 text-purple-700",
+  ANH:   "bg-blue-100 text-blue-700",
+  ESS:   "bg-teal-100 text-teal-700",
+};
+
+// ------------------------------------------------
+// VALIDACIÓN DE CONTRASEÑA
+// ------------------------------------------------
+
+function validarPassword(password: string): string | null {
+  try {
+    passwordSeguroSchema.parse(password);
+    return null;
+  } catch (e: any) {
+    return e.errors?.[0]?.message ?? "Contraseña inválida";
+  }
+}
+
 // ------------------------------------------------
 // COMPONENTE PRINCIPAL
 // ------------------------------------------------
+
 export default function GestionUsuarios() {
   const { user } = useAuth();
   const isAdmin  = user?.tipo_usuario === "ADMIN";
@@ -62,12 +88,21 @@ export default function GestionUsuarios() {
   const [error,        setError]        = useState("");
   const [exito,        setExito]        = useState("");
   const [busqueda,     setBusqueda]     = useState("");
+  const [busquedaInput, setBusquedaInput] = useState("");
   const [filtroTipo,   setFiltroTipo]   = useState<string>(isAdmin ? "" : "ESS");
+  const [pagina,       setPagina]       = useState(1);
+  const [total,        setTotal]        = useState(0);
+  const POR_PAGINA = 20;
 
   // Modales
   const [modalCrear,   setModalCrear]   = useState(false);
   const [modalEditar,  setModalEditar]  = useState<Funcionario | null>(null);
+  const [modalVer,     setModalVer]     = useState<Funcionario | null>(null);
   const [guardando,    setGuardando]    = useState(false);
+  const [enviandoReset, setEnviandoReset] = useState<number | null>(null);
+
+  // Errores de contraseña
+  const [passError, setPassError] = useState("");
 
   // Form crear
   const formVacio = {
@@ -87,34 +122,61 @@ export default function GestionUsuarios() {
     estacion_servicio_id: 0,
   });
 
-  const cargar = async () => {
+  // ------------------------------------------------
+  // CARGAR
+  // ------------------------------------------------
+
+  const cargar = async (pag = pagina, tipo = filtroTipo, busq = busqueda) => {
     setLoading(true); setError("");
     try {
-      const params: Record<string, string> = {};
-      if (filtroTipo) params.tipo_usuario = filtroTipo;
-      if (busqueda)   params.search = busqueda;
+      const params: Record<string, string> = { page: String(pag) };
+      if (tipo) params.tipo_usuario = tipo;
+      if (busq) params.search       = busq;
       const res = await api.get("/api/users/funcionarios/", { params });
-      setFuncionarios(res.data);
+      // El endpoint puede devolver array o paginado
+      if (Array.isArray(res.data)) {
+        setFuncionarios(res.data);
+        setTotal(res.data.length);
+      } else {
+        setFuncionarios(res.data.results ?? res.data);
+        setTotal(res.data.count ?? 0);
+      }
     } catch {
       setError("Error al cargar los usuarios.");
     } finally { setLoading(false); }
   };
 
   useEffect(() => {
-    cargar();
+    cargar(1, filtroTipo, busqueda);
+    setPagina(1);
+  }, [filtroTipo]);
+
+  useEffect(() => {
     estacionesService.getAll({ estado: "ACTIVA" }).then(data =>
       setEstaciones(Array.isArray(data) ? data : (data as any).results ?? [])
     ).catch(() => {});
-  }, [filtroTipo]);
+  }, []);
+
+  const onBuscar = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusqueda(busquedaInput);
+    setPagina(1);
+    cargar(1, filtroTipo, busquedaInput);
+  };
+
+  const totalPaginas = total > 0 ? Math.ceil(total / POR_PAGINA) : 1;
 
   // ------------------------------------------------
   // CREAR FUNCIONARIO
   // ------------------------------------------------
+
   const onCreate = async () => {
     if (!form.email || !form.nombres || !form.apellido_paterno || !form.password) {
       setError("Completa los campos obligatorios.");
       return;
     }
+    const errPass = validarPassword(form.password);
+    if (errPass) { setError(errPass); return; }
     if (form.password !== form.password2) {
       setError("Las contraseñas no coinciden.");
       return;
@@ -152,15 +214,17 @@ export default function GestionUsuarios() {
   // ------------------------------------------------
   // EDITAR FUNCIONARIO
   // ------------------------------------------------
+
   const abrirEditar = (f: Funcionario) => {
+    setModalVer(null);
     setModalEditar(f);
     setFormEdit({
-      nombres:             f.nombres,
-      apellido_paterno:    f.apellido_paterno,
-      apellido_materno:    f.apellido_materno,
-      cargo:               f.perfil?.cargo ?? "",
-      unidad_departamento: f.perfil?.unidad_departamento ?? "",
-      celular:             f.perfil?.celular ?? "",
+      nombres:              f.nombres,
+      apellido_paterno:     f.apellido_paterno,
+      apellido_materno:     f.apellido_materno,
+      cargo:                f.perfil?.cargo ?? "",
+      unidad_departamento:  f.perfil?.unidad_departamento ?? "",
+      celular:              f.perfil?.celular ?? "",
       estacion_servicio_id: f.perfil?.estacion_servicio_id ?? 0,
     });
     setError("");
@@ -172,7 +236,8 @@ export default function GestionUsuarios() {
     try {
       await api.put(`/api/users/funcionarios/${modalEditar.id}/`, {
         ...formEdit,
-        estacion_servicio_id: modalEditar.tipo_usuario === "ESS" ? formEdit.estacion_servicio_id : undefined,
+        estacion_servicio_id: modalEditar.tipo_usuario === "ESS"
+          ? formEdit.estacion_servicio_id : undefined,
       });
       setExito("Funcionario actualizado correctamente.");
       setModalEditar(null);
@@ -185,6 +250,7 @@ export default function GestionUsuarios() {
   // ------------------------------------------------
   // CAMBIAR ESTADO
   // ------------------------------------------------
+
   const cambiarEstado = async (f: Funcionario, estado: string) => {
     try {
       await api.post(`/api/users/funcionarios/${f.id}/cambiar-estado/`, {
@@ -194,6 +260,26 @@ export default function GestionUsuarios() {
       await cargar();
     } catch {
       setError("Error al cambiar el estado.");
+    }
+  };
+
+  // ------------------------------------------------
+  // RESTABLECER CONTRASEÑA
+  // Reutiliza el flujo de recuperación existente —
+  // el sistema envía un email al funcionario con el
+  // enlace para que él establezca su nueva contraseña.
+  // El admin nunca ve ni ingresa la contraseña nueva.
+  // ------------------------------------------------
+
+  const restablecerPassword = async (f: Funcionario) => {
+    setEnviandoReset(f.id);
+    try {
+      await authService.recuperarPassword(f.email);
+      setExito(`Email de recuperación enviado a ${f.email}.`);
+    } catch {
+      setError("Error al enviar el email de recuperación.");
+    } finally {
+      setEnviandoReset(null);
     }
   };
 
@@ -208,6 +294,10 @@ export default function GestionUsuarios() {
       ]
     : [{ value: "ESS", label: "Operadores ESS" }];
 
+  // ------------------------------------------------
+  // RENDER
+  // ------------------------------------------------
+
   return (
     <Layout>
       <div className="space-y-5">
@@ -220,14 +310,14 @@ export default function GestionUsuarios() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800">Gestión de Usuarios</h1>
-              <p className="text-slate-500 text-sm">{funcionarios.length} usuario(s) encontrado(s)</p>
+              <p className="text-slate-500 text-sm">{total} usuario(s) registrado(s)</p>
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={cargar} className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+            <button onClick={() => cargar()} className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
               <RefreshCw className="w-4 h-4" />
             </button>
-            <button onClick={() => { setModalCrear(true); setError(""); }}
+            <button onClick={() => { setModalCrear(true); setError(""); setPassError(""); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
               <Plus className="w-4 h-4" /> Nuevo usuario
             </button>
@@ -248,7 +338,6 @@ export default function GestionUsuarios() {
 
         {/* TABS + BÚSQUEDA */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Tabs */}
           <div className="flex border-b border-slate-100 px-4 pt-3 gap-1">
             {TABS.map(t => (
               <button key={t.value} onClick={() => setFiltroTipo(t.value)}
@@ -261,16 +350,27 @@ export default function GestionUsuarios() {
               </button>
             ))}
           </div>
-          {/* Búsqueda */}
           <div className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input value={busqueda} onChange={e => setBusqueda(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && cargar()}
-                placeholder="Buscar por nombre o email..."
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none"
-              />
-            </div>
+            <form onSubmit={onBuscar} className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  value={busquedaInput}
+                  onChange={e => setBusquedaInput(e.target.value)}
+                  placeholder="Buscar por nombre o email..."
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none"
+                />
+              </div>
+              <button type="submit" className="px-4 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+                Buscar
+              </button>
+              {busqueda && (
+                <button type="button" onClick={() => { setBusquedaInput(""); setBusqueda(""); cargar(1, filtroTipo, ""); }}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  Limpiar
+                </button>
+              )}
+            </form>
           </div>
         </div>
 
@@ -290,7 +390,7 @@ export default function GestionUsuarios() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
-                    {["Nombre", "Email", "Rol", "Cargo", "Estación", "Estado", ""].map(h => (
+                    {["Nombre", "Email", "Rol", "Cargo / Estación", "Estado", "Registro", ""].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -305,30 +405,57 @@ export default function GestionUsuarios() {
                               {f.nombres.charAt(0).toUpperCase()}
                             </span>
                           </div>
-                          <p className="text-sm font-medium text-slate-700">{f.nombre_completo}</p>
+                          <div>
+                            <p className="text-sm font-medium text-slate-700">{f.nombre_completo}</p>
+                            {!f.email_verificado && (
+                              <span className="text-xs text-amber-600">Email no verificado</span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-500">{f.email}</td>
                       <td className="px-4 py-3">
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${tipoColor[f.tipo_usuario] ?? "bg-slate-100 text-slate-500"}`}>
                           {tipoLabel[f.tipo_usuario] ?? f.tipo_usuario}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-500">{f.perfil?.cargo || "—"}</td>
                       <td className="px-4 py-3 text-sm text-slate-500">
-                        {f.perfil?.estacion_nombre || "—"}
+                        {f.tipo_usuario === "ESS"
+                          ? f.perfil?.estacion_nombre || "—"
+                          : f.perfil?.cargo || "—"
+                        }
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${estadoCuentaColor[f.estado_cuenta] ?? "bg-slate-100 text-slate-500"}`}>
                           {f.estado_cuenta}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-sm text-slate-500">
+                        {formatFecha(f.date_joined)}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1.5">
+                          {/* Ver detalle */}
+                          <button onClick={() => setModalVer(f)}
+                            className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Ver detalle">
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          {/* Editar */}
                           <button onClick={() => abrirEditar(f)}
                             className="p-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors" title="Editar">
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
+                          {/* Restablecer contraseña */}
+                          <button
+                            onClick={() => restablecerPassword(f)}
+                            disabled={enviandoReset === f.id}
+                            className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors disabled:opacity-50" title="Restablecer contraseña">
+                            {enviandoReset === f.id
+                              ? <div className="w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                              : <KeyRound className="w-3.5 h-3.5" />
+                            }
+                          </button>
+                          {/* Activar / Suspender */}
                           {isAdmin && f.estado_cuenta !== "ACTIVO" && (
                             <button onClick={() => cambiarEstado(f, "ACTIVO")}
                               className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Activar">
@@ -349,10 +476,121 @@ export default function GestionUsuarios() {
               </table>
             </div>
           )}
+
+          {/* PAGINACIÓN */}
+          {totalPaginas > 1 && (
+            <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
+              <p className="text-xs text-slate-500">Página {pagina} de {totalPaginas} ({total} usuarios)</p>
+              <div className="flex gap-2">
+                <button onClick={() => { setPagina(p => Math.max(1, p - 1)); cargar(Math.max(1, pagina - 1)); }}
+                  disabled={pagina === 1 || loading}
+                  className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  <ChevronLeft className="w-3.5 h-3.5" /> Anterior
+                </button>
+                <button onClick={() => { setPagina(p => Math.min(totalPaginas, p + 1)); cargar(Math.min(totalPaginas, pagina + 1)); }}
+                  disabled={pagina >= totalPaginas || loading}
+                  className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  Siguiente <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* MODAL CREAR */}
+      {/* ---- MODAL VER DETALLE ---- */}
+      {modalVer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModalVer(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                <Eye className="w-4 h-4 text-blue-600" /> Detalle del usuario
+              </h3>
+              <button onClick={() => setModalVer(null)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              {/* Avatar + nombre */}
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-[#1a3a5c] rounded-full flex items-center justify-center shrink-0">
+                  <span className="text-white text-xl font-bold">{modalVer.nombres.charAt(0).toUpperCase()}</span>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-slate-800">{modalVer.nombre_completo}</p>
+                  <p className="text-sm text-slate-500">{modalVer.email}</p>
+                  <div className="flex gap-2 mt-1">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tipoColor[modalVer.tipo_usuario] ?? "bg-slate-100 text-slate-500"}`}>
+                      {tipoLabel[modalVer.tipo_usuario] ?? modalVer.tipo_usuario}
+                    </span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estadoCuentaColor[modalVer.estado_cuenta] ?? "bg-slate-100 text-slate-500"}`}>
+                      {modalVer.estado_cuenta}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Datos institucionales */}
+              {modalVer.perfil && (
+                <div className="border border-slate-100 rounded-xl p-4 space-y-2">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Datos institucionales</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-slate-400">N° Funcionario</p>
+                      <p className="font-medium text-slate-700">{modalVer.perfil.numero_funcionario || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400">Documento</p>
+                      <p className="font-medium text-slate-700">{modalVer.perfil.tipo_documento} {modalVer.perfil.numero_documento}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400">Cargo</p>
+                      <p className="font-medium text-slate-700">{modalVer.perfil.cargo || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400">Unidad</p>
+                      <p className="font-medium text-slate-700">{modalVer.perfil.unidad_departamento || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400">Celular</p>
+                      <p className="font-medium text-slate-700">{modalVer.perfil.celular || "—"}</p>
+                    </div>
+                    {modalVer.tipo_usuario === "ESS" && (
+                      <div>
+                        <p className="text-xs text-slate-400">Estación</p>
+                        <p className="font-medium text-slate-700">{modalVer.perfil.estacion_nombre || "—"}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs text-slate-400">Registro</p>
+                      <p className="font-medium text-slate-700">{formatFecha(modalVer.date_joined)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400">Email verificado</p>
+                      <p className={`font-medium ${modalVer.email_verificado ? "text-green-600" : "text-amber-600"}`}>
+                        {modalVer.email_verificado ? "Sí" : "No"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+              <button onClick={() => { setModalVer(null); restablecerPassword(modalVer); }}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium hover:bg-amber-100 transition-colors">
+                <KeyRound className="w-4 h-4" /> Restablecer contraseña
+              </button>
+              <button onClick={() => abrirEditar(modalVer)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+                <Edit2 className="w-4 h-4" /> Editar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- MODAL CREAR ---- */}
       {modalCrear && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModalCrear(false)} />
@@ -373,7 +611,6 @@ export default function GestionUsuarios() {
                 </div>
               )}
 
-              {/* TIPO DE USUARIO */}
               {isAdmin && (
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Rol *</label>
@@ -407,7 +644,21 @@ export default function GestionUsuarios() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Contraseña *</label>
-                  <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className={inputCls} placeholder="Mínimo 8 caracteres" />
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setForm(f => ({ ...f, password: val }));
+                      setPassError(validarPassword(val) ?? "");
+                    }}
+                    className={inputCls}
+                    placeholder="Mínimo 8 caracteres"
+                  />
+                  {passError
+                    ? <p className="text-red-500 text-xs mt-1">{passError}</p>
+                    : <p className="text-slate-400 text-xs mt-1">{PASSWORD_HELP_TEXT}</p>
+                  }
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Confirmar contraseña *</label>
@@ -422,8 +673,7 @@ export default function GestionUsuarios() {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Tipo documento *</label>
                     <select value={form.tipo_documento} onChange={e => setForm(f => ({ ...f, tipo_documento: e.target.value }))} className={inputCls}>
                       <option value="CI">Cédula de Identidad</option>
-                      <option value="PASAPORTE">Pasaporte</option>
-                      <option value="EXTRANJERO">Carnet Extranjero</option>
+                      <option value="CIE">Carnet de Extranjero</option>
                     </select>
                   </div>
                   <div>
@@ -451,7 +701,11 @@ export default function GestionUsuarios() {
                       <label className="block text-xs font-medium text-slate-600 mb-1">Estación de servicio *</label>
                       <select value={form.estacion_servicio} onChange={e => setForm(f => ({ ...f, estacion_servicio: Number(e.target.value) }))} className={inputCls}>
                         <option value={0}>Seleccionar estación...</option>
-                        {estaciones.map(e => <option key={e.id} value={e.id}>{e.nombre} — {e.municipio}</option>)}
+                        {estaciones.map(e => (
+                          <option key={e.id} value={e.id}>
+                            {e.nombre} — {e.municipio_nombre ?? e.municipio}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   )}
@@ -472,7 +726,7 @@ export default function GestionUsuarios() {
         </div>
       )}
 
-      {/* MODAL EDITAR */}
+      {/* ---- MODAL EDITAR ---- */}
       {modalEditar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModalEditar(null)} />
@@ -523,21 +777,33 @@ export default function GestionUsuarios() {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Estación de servicio</label>
                     <select value={formEdit.estacion_servicio_id} onChange={e => setFormEdit(f => ({ ...f, estacion_servicio_id: Number(e.target.value) }))} className={inputCls}>
                       <option value={0}>Sin estación</option>
-                      {estaciones.map(e => <option key={e.id} value={e.id}>{e.nombre} — {e.municipio}</option>)}
+                      {estaciones.map(e => (
+                        <option key={e.id} value={e.id}>
+                          {e.nombre} — {e.municipio_nombre ?? e.municipio}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white">
-              <button onClick={() => setModalEditar(null)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
-                Cancelar
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-between gap-3 sticky bottom-0 bg-white">
+              {/* Restablecer contraseña también desde editar */}
+              <button
+                onClick={() => { setModalEditar(null); restablecerPassword(modalEditar); }}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium hover:bg-amber-100 transition-colors">
+                <KeyRound className="w-4 h-4" /> Restablecer contraseña
               </button>
-              <button onClick={onEditar} disabled={guardando} className="flex items-center gap-2 px-5 py-2 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] disabled:bg-slate-300 transition-colors">
-                {guardando ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                Guardar cambios
-              </button>
+              <div className="flex gap-3">
+                <button onClick={() => setModalEditar(null)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  Cancelar
+                </button>
+                <button onClick={onEditar} disabled={guardando} className="flex items-center gap-2 px-5 py-2 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] disabled:bg-slate-300 transition-colors">
+                  {guardando ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  Guardar cambios
+                </button>
+              </div>
             </div>
           </div>
         </div>

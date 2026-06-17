@@ -54,10 +54,19 @@ class EstacionServicioViewSet(
         SearchFilter,
     ]
 
-    filterset_fields  = ["estado", "departamento", "municipio"]
-    ordering_fields   = ["nombre", "codigo", "departamento", "fecha_creacion"]
-    ordering          = ["departamento", "nombre"]
-    search_fields     = ["nombre", "codigo", "municipio", "departamento"]
+    filterset_fields = [
+        "estado",
+        "municipio",
+        "municipio__provincia__departamento",
+    ]
+    ordering_fields = ["nombre", "codigo", "fecha_creacion"]
+    ordering        = ["municipio__provincia__departamento__nombre", "nombre"]
+    search_fields   = [
+        "nombre",
+        "codigo",
+        "municipio__nombre",
+        "municipio__provincia__departamento__nombre",
+    ]
 
     # ------------------------------------------------
     # QUERYSET SEGÚN ROL
@@ -67,7 +76,8 @@ class EstacionServicioViewSet(
         user = self.request.user
 
         base_qs = EstacionServicio.objects.select_related(
-            "creada_por"
+            "creada_por",
+            "municipio__provincia__departamento",
         ).prefetch_related(
             "funcionarios__user"
         )
@@ -85,6 +95,12 @@ class EstacionServicioViewSet(
             return base_qs.filter(
                 pk=user.perfil_funcionario.estacion_servicio.pk
             )
+
+        # CONS (consumidor) puede listar estaciones activas
+        # para elegir su estación de preferencia (filtrado
+        # típicamente por ?municipio=<id> desde el frontend)
+        if user.tipo_usuario == "CONS":
+            return base_qs.filter(estado="ACTIVA")
 
         return base_qs.none()
 

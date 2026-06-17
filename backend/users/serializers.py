@@ -20,6 +20,8 @@ class UserSerializer(serializers.ModelSerializer):
     """
 
     nombre_completo = serializers.SerializerMethodField()
+    municipio_id    = serializers.SerializerMethodField()
+    estacion_nombre = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -34,11 +36,38 @@ class UserSerializer(serializers.ModelSerializer):
             "estado_cuenta",
             "email_verificado",
             "date_joined",
+            "municipio_id",
+            "estacion_nombre",
         ]
         read_only_fields = fields
 
     def get_nombre_completo(self, obj):
         return obj.nombre_completo()
+
+    def get_municipio_id(self, obj):
+        """
+        Para consumidores (CONS), retorna el id del Municipio
+        de su ConsumidorPerfil. Se usa en el frontend para
+        filtrar el selector de "Estación de servicio de
+        preferencia" en el formulario de solicitud.
+        Para otros tipos de usuario retorna None.
+        """
+        if hasattr(obj, "consumidor") and obj.consumidor.municipio_id:
+            return obj.consumidor.municipio_id
+        return None
+
+    def get_estacion_nombre(self, obj):
+        """
+        Para usuarios ESS, retorna el nombre de su estación asignada.
+        Se muestra en el navbar como identificador de la estación.
+        """
+        if (
+            obj.tipo_usuario == "ESS"
+            and hasattr(obj, "perfil_funcionario")
+            and obj.perfil_funcionario.estacion_servicio
+        ):
+            return obj.perfil_funcionario.estacion_servicio.nombre
+        return None
 
 
 # ------------------------------------------------
@@ -159,7 +188,7 @@ class CrearFuncionarioSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
-        tipo = attrs.get("tipo_usuario")
+        tipo     = attrs.get("tipo_usuario")
         estacion = attrs.get("estacion_servicio")
 
         # ESS debe tener estación asignada
@@ -183,7 +212,6 @@ class CrearFuncionarioSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
 
-        # Separar datos de User y PerfilFuncionario
         user_fields = [
             "email", "nombres", "apellido_paterno",
             "apellido_materno", "tipo_usuario", "password",
@@ -197,16 +225,14 @@ class CrearFuncionarioSerializer(serializers.Serializer):
         user_data   = {k: validated_data[k] for k in user_fields}
         perfil_data = {k: validated_data[k] for k in perfil_fields if k in validated_data}
 
-        # Crear usuario — password se hashea con set_password
         password = user_data.pop("password")
         user = User(**user_data)
         user.set_password(password)
-        user.estado_cuenta = User.EstadoCuenta.ACTIVO  # Admin lo crea activo
-        user.email_verificado = True                    # Admin lo verifica directamente
+        user.estado_cuenta    = User.EstadoCuenta.ACTIVO
+        user.email_verificado = True
         user.full_clean()
         user.save()
 
-        # Crear perfil institucional
         PerfilFuncionario.objects.create(user=user, **perfil_data)
 
         return user
@@ -247,9 +273,7 @@ class RegistroConsumidorSerializer(serializers.Serializer):
     provincia    = serializers.PrimaryKeyRelatedField(queryset=[])
     municipio    = serializers.PrimaryKeyRelatedField(queryset=[])
     direccion    = serializers.CharField(max_length=100)
-    actividad    = serializers.ChoiceField(
-        choices=[]  # Se asigna en __init__
-    )
+    actividad    = serializers.ChoiceField(choices=[])
 
     # --- Datos de DocumentoIdentidad ---
     tipo_documento        = serializers.ChoiceField(choices=[])
@@ -266,15 +290,11 @@ class RegistroConsumidorSerializer(serializers.Serializer):
         from catalogos.models import Departamento, Provincia, Municipio
         from consumidores.models import ConsumidorPerfil, DocumentoIdentidad
 
-        self.fields["departamento"].queryset = Departamento.objects.all()
-        self.fields["provincia"].queryset    = Provincia.objects.all()
-        self.fields["municipio"].queryset    = Municipio.objects.all()
-        self.fields["actividad"].choices     = ConsumidorPerfil.ActividadEconomica.choices
+        self.fields["departamento"].queryset  = Departamento.objects.all()
+        self.fields["provincia"].queryset     = Provincia.objects.all()
+        self.fields["municipio"].queryset     = Municipio.objects.all()
+        self.fields["actividad"].choices      = ConsumidorPerfil.ActividadEconomica.choices
         self.fields["tipo_documento"].choices = DocumentoIdentidad.TipoDocumento.choices
-
-    # ------------------------------------------------
-    # VALIDACIONES
-    # ------------------------------------------------
 
     def validate_email(self, value):
         value = value.lower().strip()
@@ -294,7 +314,7 @@ class RegistroConsumidorSerializer(serializers.Serializer):
 
     def validate_fecha_nacimiento(self, value):
         from datetime import date
-        hoy = date.today()
+        hoy  = date.today()
         edad = (
             hoy.year - value.year
             - ((hoy.month, hoy.day) < (value.month, value.day))
@@ -311,7 +331,6 @@ class RegistroConsumidorSerializer(serializers.Serializer):
                 "password2": "Las contraseñas no coinciden."
             })
 
-        # Validar que provincia pertenece al departamento
         prov = attrs.get("provincia")
         dep  = attrs.get("departamento")
         if prov and dep and prov.departamento_id != dep.id:
@@ -319,8 +338,7 @@ class RegistroConsumidorSerializer(serializers.Serializer):
                 "provincia": "La provincia no pertenece al departamento seleccionado."
             })
 
-        # Validar que municipio pertenece a la provincia
-        mun  = attrs.get("municipio")
+        mun = attrs.get("municipio")
         if mun and prov and mun.provincia_id != prov.id:
             raise serializers.ValidationError({
                 "municipio": "El municipio no pertenece a la provincia seleccionada."
@@ -357,7 +375,6 @@ class RegistroConsumidorSerializer(serializers.Serializer):
         validated_data.pop("password2")
         password = validated_data.pop("password")
 
-        # Separar datos
         campos_user   = ["email", "nombres", "apellido_paterno", "apellido_materno"]
         campos_perfil = [
             "fecha_nacimiento", "celular", "departamento",
@@ -368,20 +385,16 @@ class RegistroConsumidorSerializer(serializers.Serializer):
             "anverso", "reverso", "foto_sosteniendo"
         ]
 
-        user_data   = {k: validated_data.pop(k) for k in campos_user if k in validated_data}
+        user_data   = {k: validated_data.pop(k) for k in campos_user   if k in validated_data}
         perfil_data = {k: validated_data.pop(k) for k in campos_perfil if k in validated_data}
-        doc_data    = {k: validated_data.pop(k) for k in campos_doc if k in validated_data}
+        doc_data    = {k: validated_data.pop(k) for k in campos_doc    if k in validated_data}
 
-        # Crear User
         user = User(tipo_usuario=User.TipoUsuario.CONS, **user_data)
         user.set_password(password)
         user.full_clean()
         user.save()
 
-        # Crear ConsumidorPerfil
         perfil = ConsumidorPerfil.objects.create(user=user, **perfil_data)
-
-        # Crear DocumentoIdentidad
         DocumentoIdentidad.objects.create(perfil=perfil, **doc_data)
 
         return user
@@ -410,33 +423,26 @@ class LoginSerializer(serializers.Serializer):
         email    = attrs.get("email")
         password = attrs.get("password")
 
-        # Verificar que el usuario existe
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "Credenciales incorrectas."
-            )
+            raise serializers.ValidationError("Credenciales incorrectas.")
 
-        # Verificar bloqueo por intentos fallidos
         if user.esta_bloqueado():
             raise serializers.ValidationError(
                 "Cuenta bloqueada temporalmente. Intente más tarde."
             )
 
-        # Verificar estado de cuenta
         if user.estado_cuenta == User.EstadoCuenta.SUSPENDIDO:
             raise serializers.ValidationError(
                 "Su cuenta ha sido suspendida. Contacte al administrador."
             )
 
-        # Verificar email verificado
         if not user.email_verificado:
             raise serializers.ValidationError(
                 "Debe verificar su correo electrónico antes de iniciar sesión."
             )
 
-        # Autenticar credenciales
         usuario_autenticado = authenticate(
             request=self.context.get("request"),
             username=email,
@@ -444,9 +450,7 @@ class LoginSerializer(serializers.Serializer):
         )
 
         if not usuario_autenticado:
-            raise serializers.ValidationError(
-                "Credenciales incorrectas."
-            )
+            raise serializers.ValidationError("Credenciales incorrectas.")
 
         attrs["user"] = usuario_autenticado
         return attrs
@@ -457,10 +461,6 @@ class LoginSerializer(serializers.Serializer):
 # ------------------------------------------------
 
 class VerificarEmailSerializer(serializers.Serializer):
-    """
-    Verifica el email del consumidor mediante
-    un código PIN de 6 dígitos enviado por correo.
-    """
 
     email      = serializers.EmailField()
     codigo_pin = serializers.CharField(max_length=6, min_length=6)
@@ -489,9 +489,7 @@ class VerificarEmailSerializer(serializers.Serializer):
         )
 
         if not token:
-            raise serializers.ValidationError(
-                "Código PIN incorrecto."
-            )
+            raise serializers.ValidationError("Código PIN incorrecto.")
 
         if token.esta_expirado():
             raise serializers.ValidationError(
@@ -508,17 +506,10 @@ class VerificarEmailSerializer(serializers.Serializer):
 # ------------------------------------------------
 
 class SolicitarRecuperacionSerializer(serializers.Serializer):
-    """
-    Recibe el email y genera un token de recuperación.
-    Siempre responde con éxito para no revelar
-    si el email existe en el sistema.
-    """
 
     email = serializers.EmailField()
 
     def validate_email(self, value):
-        # No revelamos si el email existe o no
-        # La vista maneja la lógica de envío solo si existe
         return value
 
 
@@ -527,10 +518,6 @@ class SolicitarRecuperacionSerializer(serializers.Serializer):
 # ------------------------------------------------
 
 class RecuperarPasswordSerializer(serializers.Serializer):
-    """
-    Permite cambiar la contraseña usando el token
-    de recuperación enviado por correo.
-    """
 
     token     = serializers.UUIDField()
     password  = serializers.CharField(
@@ -556,9 +543,7 @@ class RecuperarPasswordSerializer(serializers.Serializer):
                 usado=False,
             )
         except TokenVerificacion.DoesNotExist:
-            raise serializers.ValidationError(
-                "Token inválido o ya utilizado."
-            )
+            raise serializers.ValidationError("Token inválido o ya utilizado.")
 
         if token.esta_expirado():
             raise serializers.ValidationError(
@@ -574,11 +559,6 @@ class RecuperarPasswordSerializer(serializers.Serializer):
 # ------------------------------------------------
 
 class CambiarPasswordSerializer(serializers.Serializer):
-    """
-    Permite al usuario autenticado cambiar su contraseña
-    conociendo la actual. Usado también para forzar
-    cambio cuando requiere_cambio_password=True.
-    """
 
     password_actual = serializers.CharField(
         write_only=True,

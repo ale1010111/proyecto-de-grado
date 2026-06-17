@@ -20,9 +20,9 @@ const estadoColor: Record<string, string> = {
   SUSPENDIDA: "bg-red-100 text-red-600",
 };
 
-interface Depto  { id: number; nombre: string; }
-interface Prov   { id: number; nombre: string; }
-interface Muni   { id: number; nombre: string; }
+interface Depto { id: number; nombre: string; }
+interface Prov  { id: number; nombre: string; }
+interface Muni  { id: number; nombre: string; }
 
 export default function EstacionesANH() {
   const [estaciones,    setEstaciones]    = useState<EstacionServicio[]>([]);
@@ -33,9 +33,9 @@ export default function EstacionesANH() {
   const [filtroEstado,  setFiltroEstado]  = useState<EstadoEstacion | "">("");
 
   // Catálogos
-  const [deptos,  setDeptos]  = useState<Depto[]>([]);
-  const [provs,   setProvs]   = useState<Prov[]>([]);
-  const [munis,   setMunis]   = useState<Muni[]>([]);
+  const [deptos, setDeptos] = useState<Depto[]>([]);
+  const [provs,  setProvs]  = useState<Prov[]>([]);
+  const [munis,  setMunis]  = useState<Muni[]>([]);
   const [loadingCatalogo, setLoadingCatalogo] = useState(false);
 
   // Modal
@@ -43,16 +43,13 @@ export default function EstacionesANH() {
   const [editando,  setEditando]  = useState<EstacionServicio | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({
-    nombre:       "",
-    codigo:       "",
-    direccion:    "",
-    departamento: "",
-    deptoId:      0,
-    provincia:    "",
-    provId:       0,
-    municipio:    "",
-    muniId:       0,
-    estado:       "ACTIVA" as EstadoEstacion,
+    nombre:    "",
+    codigo:    "",
+    direccion: "",
+    deptoId:   0,
+    provId:    0,
+    muniId:    0,
+    estado:    "ACTIVA" as EstadoEstacion,
   });
 
   const cargar = async () => {
@@ -77,9 +74,12 @@ export default function EstacionesANH() {
 
   useEffect(() => { cargar(); }, [filtroEstado]);
 
-  // Cargar provincias al cambiar depto
-  const onDeptoChange = async (deptoId: number, deptoNombre: string) => {
-    setForm(f => ({ ...f, deptoId, departamento: deptoNombre, provId: 0, provincia: "", muniId: 0, municipio: "" }));
+  // ------------------------------------------------
+  // CASCADA DEPARTAMENTO -> PROVINCIA -> MUNICIPIO
+  // ------------------------------------------------
+
+  const onDeptoChange = async (deptoId: number) => {
+    setForm(f => ({ ...f, deptoId, provId: 0, muniId: 0 }));
     setProvs([]); setMunis([]);
     if (!deptoId) return;
     setLoadingCatalogo(true);
@@ -89,9 +89,8 @@ export default function EstacionesANH() {
     } finally { setLoadingCatalogo(false); }
   };
 
-  // Cargar municipios al cambiar provincia
-  const onProvChange = async (provId: number, provNombre: string) => {
-    setForm(f => ({ ...f, provId, provincia: provNombre, muniId: 0, municipio: "" }));
+  const onProvChange = async (provId: number) => {
+    setForm(f => ({ ...f, provId, muniId: 0 }));
     setMunis([]);
     if (!provId) return;
     setLoadingCatalogo(true);
@@ -101,44 +100,60 @@ export default function EstacionesANH() {
     } finally { setLoadingCatalogo(false); }
   };
 
+  // ------------------------------------------------
+  // ABRIR MODAL
+  // ------------------------------------------------
+
   const abrirCrear = () => {
     setEditando(null);
-    setForm({ nombre: "", codigo: "", direccion: "", departamento: "", deptoId: 0, provincia: "", provId: 0, municipio: "", muniId: 0, estado: "ACTIVA" });
+    setForm({ nombre: "", codigo: "", direccion: "", deptoId: 0, provId: 0, muniId: 0, estado: "ACTIVA" });
     setProvs([]); setMunis([]);
     setModal(true);
   };
 
-  const abrirEditar = (e: EstacionServicio) => {
+  const abrirEditar = async (e: EstacionServicio) => {
     setEditando(e);
     setForm({
-      nombre:       e.nombre,
-      codigo:       e.codigo,
-      direccion:    e.direccion,
-      departamento: e.departamento,
-      deptoId:      0,
-      provincia:    "",
-      provId:       0,
-      municipio:    e.municipio,
-      muniId:       0,
-      estado:       e.estado,
+      nombre:    e.nombre,
+      codigo:    e.codigo,
+      direccion: e.direccion,
+      deptoId:   e.departamento_id,
+      provId:    e.provincia_id,
+      muniId:    e.municipio,
+      estado:    e.estado,
     });
     setModal(true);
+
+    // Precargar provincias y municipios para que los selects
+    // muestren las opciones correctas (con el valor actual incluido)
+    setLoadingCatalogo(true);
+    try {
+      const provincias = await catalogosService.getProvincias(e.departamento_id);
+      setProvs(provincias);
+      const municipios = await catalogosService.getMunicipios(e.provincia_id);
+      setMunis(municipios);
+    } finally {
+      setLoadingCatalogo(false);
+    }
   };
 
+  // ------------------------------------------------
+  // GUARDAR
+  // ------------------------------------------------
+
   const guardar = async () => {
-    if (!form.nombre || !form.codigo || !form.direccion || !form.municipio || !form.departamento) {
+    if (!form.nombre || !form.codigo || !form.direccion || !form.muniId) {
       setError("Completa todos los campos obligatorios.");
       return;
     }
     setGuardando(true); setError("");
     try {
       const payload = {
-        nombre:       form.nombre,
-        codigo:       form.codigo,
-        direccion:    form.direccion,
-        municipio:    form.municipio,
-        departamento: form.departamento,
-        estado:       form.estado,
+        nombre:    form.nombre,
+        codigo:    form.codigo,
+        direccion: form.direccion,
+        municipio: form.muniId,
+        estado:    form.estado,
       };
       if (editando) {
         await estacionesService.actualizar(editando.id, payload);
@@ -254,7 +269,7 @@ export default function EstacionesANH() {
                   </span>
                 </div>
                 <div className="px-5 py-3 space-y-1">
-                  <p className="text-xs text-slate-600">{e.departamento} — {e.municipio}</p>
+                  <p className="text-xs text-slate-600">{e.departamento_nombre} — {e.municipio_nombre}</p>
                   <p className="text-xs text-slate-400 truncate">{e.direccion}</p>
                 </div>
                 <div className="px-5 py-3 border-t border-slate-100 flex gap-2 flex-wrap">
@@ -312,68 +327,46 @@ export default function EstacionesANH() {
               {/* DEPARTAMENTO */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Departamento *</label>
-                {editando ? (
-                  <input value={form.departamento} onChange={e => setForm(f => ({ ...f, departamento: e.target.value }))} className={inputCls} placeholder="Departamento" />
-                ) : (
-                  <select
-                    value={form.deptoId}
-                    onChange={e => {
-                      const id = Number(e.target.value);
-                      const nombre = deptos.find(d => d.id === id)?.nombre ?? "";
-                      onDeptoChange(id, nombre);
-                    }}
-                    className={inputCls}
-                  >
-                    <option value={0}>Seleccionar departamento...</option>
-                    {deptos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
-                  </select>
-                )}
+                <select
+                  value={form.deptoId}
+                  onChange={e => onDeptoChange(Number(e.target.value))}
+                  className={inputCls}
+                >
+                  <option value={0}>Seleccionar departamento...</option>
+                  {deptos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
+                </select>
               </div>
 
               {/* PROVINCIA */}
-              {!editando && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Provincia *</label>
-                  <select
-                    value={form.provId}
-                    onChange={e => {
-                      const id = Number(e.target.value);
-                      const nombre = provs.find(p => p.id === id)?.nombre ?? "";
-                      onProvChange(id, nombre);
-                    }}
-                    disabled={!form.deptoId || loadingCatalogo}
-                    className={inputCls + " disabled:opacity-50"}
-                  >
-                    <option value={0}>
-                      {loadingCatalogo ? "Cargando..." : "Seleccionar provincia..."}
-                    </option>
-                    {provs.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-                  </select>
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Provincia *</label>
+                <select
+                  value={form.provId}
+                  onChange={e => onProvChange(Number(e.target.value))}
+                  disabled={!form.deptoId || loadingCatalogo}
+                  className={inputCls + " disabled:opacity-50"}
+                >
+                  <option value={0}>
+                    {loadingCatalogo ? "Cargando..." : "Seleccionar provincia..."}
+                  </option>
+                  {provs.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </select>
+              </div>
 
               {/* MUNICIPIO */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Municipio *</label>
-                {editando ? (
-                  <input value={form.municipio} onChange={e => setForm(f => ({ ...f, municipio: e.target.value }))} className={inputCls} placeholder="Municipio" />
-                ) : (
-                  <select
-                    value={form.muniId}
-                    onChange={e => {
-                      const id = Number(e.target.value);
-                      const nombre = munis.find(m => m.id === id)?.nombre ?? "";
-                      setForm(f => ({ ...f, muniId: id, municipio: nombre }));
-                    }}
-                    disabled={!form.provId || loadingCatalogo}
-                    className={inputCls + " disabled:opacity-50"}
-                  >
-                    <option value={0}>
-                      {loadingCatalogo ? "Cargando..." : "Seleccionar municipio..."}
-                    </option>
-                    {munis.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-                  </select>
-                )}
+                <select
+                  value={form.muniId}
+                  onChange={e => setForm(f => ({ ...f, muniId: Number(e.target.value) }))}
+                  disabled={!form.provId || loadingCatalogo}
+                  className={inputCls + " disabled:opacity-50"}
+                >
+                  <option value={0}>
+                    {loadingCatalogo ? "Cargando..." : "Seleccionar municipio..."}
+                  </option>
+                  {munis.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+                </select>
               </div>
 
               <div>

@@ -3,6 +3,7 @@
 from pathlib import Path
 from datetime import timedelta
 import environ
+import dj_database_url
 
 # ------------------------------------------------
 # BASE
@@ -12,7 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ------------------------------------------------
 # VARIABLES DE ENTORNO
-# Lee el archivo .env ubicado en backend/
+# Lee el archivo .env ubicado en backend/ (en desarrollo).
+# En Railway las variables se inyectan directamente,
+# por lo que read_env() simplemente no encuentra el
+# archivo .env y continúa sin error.
 # ------------------------------------------------
 
 env = environ.Env(
@@ -68,12 +72,16 @@ INSTALLED_APPS = [
 
 # ------------------------------------------------
 # MIDDLEWARE
-# CorsMiddleware debe ir primero
+# CorsMiddleware debe ir primero.
+# WhiteNoise va justo después de SecurityMiddleware
+# para servir los archivos estáticos en producción
+# sin necesidad de un servidor web adicional (Nginx).
 # ------------------------------------------------
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -106,18 +114,30 @@ TEMPLATES = [
 
 # ------------------------------------------------
 # BASE DE DATOS
+# Si existe DATABASE_URL (Railway la inyecta automáticamente
+# al conectar el plugin de PostgreSQL), se usa esa conexión.
+# En desarrollo local, usa las variables individuales del .env.
 # ------------------------------------------------
 
-DATABASES = {
-    "default": {
-        "ENGINE":   "django.db.backends.postgresql",
-        "NAME":     env("DB_NAME"),
-        "USER":     env("DB_USER"),
-        "PASSWORD": env("DB_PASSWORD"),
-        "HOST":     env("DB_HOST",  default="localhost"),
-        "PORT":     env("DB_PORT"),
+if env("DATABASE_URL", default=None):
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=env("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE":   "django.db.backends.postgresql",
+            "NAME":     env("DB_NAME"),
+            "USER":     env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST":     env("DB_HOST",  default="localhost"),
+            "PORT":     env("DB_PORT"),
+        }
+    }
 
 # ------------------------------------------------
 # USUARIO PERSONALIZADO
@@ -134,6 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {"NAME": "users.validators.PasswordSeguroValidator"}
 ]
 
 # ------------------------------------------------
@@ -147,10 +168,15 @@ USE_TZ        = True
 
 # ------------------------------------------------
 # ARCHIVOS ESTÁTICOS Y MEDIA
+# STATICFILES_STORAGE con compresión y manifiesto
+# para que WhiteNoise sirva los estáticos de forma
+# eficiente en producción (Railway).
 # ------------------------------------------------
 
 STATIC_URL  = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL  = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -185,6 +211,15 @@ REST_FRAMEWORK = {
 
 # ------------------------------------------------
 # SIMPLE JWT
+# AUTH_COOKIE_SAMESITE en "None" para producción:
+# frontend (Vercel) y backend (Railway) están en
+# dominios distintos, por lo que las cookies deben
+# permitir contexto cross-site. Esto requiere
+# AUTH_COOKIE_SECURE=True (ya cubierto por not DEBUG),
+# ya que los navegadores exigen Secure junto con
+# SameSite=None.
+# En desarrollo local (DEBUG=True) se mantiene "Lax"
+# porque frontend y backend corren en localhost.
 # ------------------------------------------------
 
 SIMPLE_JWT = {
@@ -198,7 +233,7 @@ SIMPLE_JWT = {
     "AUTH_COOKIE":          "access_token",
     "AUTH_COOKIE_REFRESH":  "refresh_token",
     "AUTH_COOKIE_SECURE":   not DEBUG,
-    "AUTH_COOKIE_SAMESITE": "Strict",
+    "AUTH_COOKIE_SAMESITE": "None" if not DEBUG else "Lax",
 }
 
 # ------------------------------------------------
@@ -222,6 +257,14 @@ EMAIL_USE_TLS       = env("EMAIL_USE_TLS")
 EMAIL_HOST_USER     = env("EMAIL_HOST_USER",     default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL  = env("DEFAULT_FROM_EMAIL",  default="ANH <noreply@anh.gob.bo>")
+
+# ------------------------------------------------
+# FRONTEND URL
+# Usada para construir enlaces en emails
+# (recuperación de contraseña, etc.)
+# ------------------------------------------------
+
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 
 # ------------------------------------------------
 # TAREAS PERIÓDICAS (django-crontab)

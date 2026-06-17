@@ -7,6 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Layout from "../../components/Layout";
 import { EstadoSolicitudBadge } from "../../components/ui/EstadoBadge";
 import { solicitudesService } from "../../services/solicitudes.service";
+import { estacionesService } from "../../services/estaciones.service";
+import { catalogosService } from "../../services/catalogos.service";
 import type { Solicitud } from "../../types/solicitud.types";
 import { COMBUSTIBLES } from "../../utils/constants";
 import { formatFecha, formatIdPublico } from "../../utils/format";
@@ -26,6 +28,10 @@ const schema = z.object({
   litros_solicitados:            z.number().int().min(1).max(120),
   uso_combustible:               z.string().min(10, "Describe el uso (mínimo 10 caracteres)").max(200),
   declaracion_jurada_confirmada: z.boolean(),
+  departamento:                  z.number().int().positive("Selecciona el departamento"),
+  provincia:                     z.number().int().positive("Selecciona la provincia"),
+  municipio:                     z.number().int().positive("Selecciona el municipio"),
+  estacion_servicio:             z.number().int().positive("Selecciona una estación de servicio"),
 });
 
 const respuestaSchema = z.object({
@@ -37,9 +43,15 @@ type FormData = {
   litros_solicitados:            number;
   uso_combustible:               string;
   declaracion_jurada_confirmada: boolean;
+  departamento:                  number;
+  provincia:                     number;
+  municipio:                     number;
+  estacion_servicio:             number;
 };
 
 type RespuestaData = z.infer<typeof respuestaSchema>;
+
+interface Opcion { id: number; nombre: string; }
 
 // ------------------------------------------------
 // HELPERS — countdown
@@ -77,8 +89,16 @@ export default function MiSolicitud() {
   const [pdfViewer,     setPdfViewer]     = useState<"declaracion" | "comprobante" | null>(null);
   const [docRespuesta,     setDocRespuesta]     = useState<File | null>(null);
 
+  // Cascada de ubicación (el consumidor la indica al solicitar,
+  // ya que puede haberse mudado desde su registro)
+  const [deptos, setDeptos] = useState<Opcion[]>([]);
+  const [provs,  setProvs]  = useState<Opcion[]>([]);
+  const [munis,  setMunis]  = useState<Opcion[]>([]);
+  const [estaciones, setEstaciones] = useState<Opcion[]>([]);
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(false);
+
   const {
-    register, handleSubmit, reset,
+    register, handleSubmit, reset, setValue, watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -87,6 +107,10 @@ export default function MiSolicitud() {
       litros_solicitados:            1,
       uso_combustible:               "",
       declaracion_jurada_confirmada: false,
+      departamento:                  0,
+      provincia:                     0,
+      municipio:                     0,
+      estacion_servicio:             0,
     }
   });
 
@@ -126,6 +150,57 @@ export default function MiSolicitud() {
 
   useEffect(() => { cargar(); }, []);
 
+  // Cargar departamentos al montar (solo se usan dentro del form)
+  useEffect(() => {
+    catalogosService.getDepartamentos()
+      .then(setDeptos)
+      .catch(() => {});
+  }, []);
+
+  // ------------------------------------------------
+  // CASCADA: DEPARTAMENTO -> PROVINCIA -> MUNICIPIO -> ESTACIONES
+  // ------------------------------------------------
+
+  const onDeptoChange = async (deptoId: number) => {
+    setValue("departamento", deptoId);
+    setValue("provincia", 0);
+    setValue("municipio", 0);
+    setValue("estacion_servicio", 0);
+    setProvs([]); setMunis([]); setEstaciones([]);
+    if (!deptoId) return;
+    setCargandoCatalogo(true);
+    try {
+      const data = await catalogosService.getProvincias(deptoId);
+      setProvs(data);
+    } finally { setCargandoCatalogo(false); }
+  };
+
+  const onProvChange = async (provId: number) => {
+    setValue("provincia", provId);
+    setValue("municipio", 0);
+    setValue("estacion_servicio", 0);
+    setMunis([]); setEstaciones([]);
+    if (!provId) return;
+    setCargandoCatalogo(true);
+    try {
+      const data = await catalogosService.getMunicipios(provId);
+      setMunis(data);
+    } finally { setCargandoCatalogo(false); }
+  };
+
+  const onMuniChange = async (muniId: number) => {
+    setValue("municipio", muniId);
+    setValue("estacion_servicio", 0);
+    setEstaciones([]);
+    if (!muniId) return;
+    setCargandoCatalogo(true);
+    try {
+      const data = await estacionesService.getAll({ municipio: String(muniId), estado: "ACTIVA" });
+      const lista = Array.isArray(data) ? data : (data as any).results ?? [];
+      setEstaciones(lista.map((e: any) => ({ id: e.id, nombre: e.nombre })));
+    } finally { setCargandoCatalogo(false); }
+  };
+
   // ------------------------------------------------
   // CREAR SOLICITUD
   // ------------------------------------------------
@@ -144,10 +219,15 @@ export default function MiSolicitud() {
         uso_combustible:               data.uso_combustible,
         declaracion_jurada_confirmada: true,
         documento_justificativo:       docJustificativo,
+        departamento:                  data.departamento,
+        provincia:                     data.provincia,
+        municipio:                      data.municipio,
+        estacion_servicio:              data.estacion_servicio,
       });
       setExito("¡Solicitud creada exitosamente! La ANH revisará tu solicitud.");
       setMostrarForm(false);
       reset();
+      setProvs([]); setMunis([]); setEstaciones([]);
       await cargar();
     } catch (err: unknown) {
       const e = err as { response?: { data?: Record<string, string[]> | { detail?: string } } };
@@ -248,6 +328,10 @@ export default function MiSolicitud() {
   const porcentajeTiempo = fechaLimite
     ? Math.min(100, Math.max(0, ((horas * 60 + minutos) / (24 * 60)) * 100))
     : 0;
+
+  const watchDepto = watch("departamento");
+  const watchProv  = watch("provincia");
+  const watchMuni  = watch("municipio");
 
   return (
     <Layout>
@@ -541,6 +625,92 @@ export default function MiSolicitud() {
                 {errors.uso_combustible && <p className="text-red-500 text-xs mt-1">{errors.uso_combustible.message}</p>}
               </div>
 
+              {/* UBICACIÓN ACTUAL */}
+              <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50/50">
+                <p className="text-sm font-medium text-slate-700">
+                  ¿Dónde te encuentras actualmente? *
+                </p>
+                <p className="text-xs text-slate-500">
+                  Indica tu ubicación actual (puede ser distinta a la registrada en tu perfil).
+                  Esto permite mostrarte las estaciones de servicio cercanas.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Departamento *</label>
+                    <select
+                      value={watchDepto || 0}
+                      onChange={e => onDeptoChange(Number(e.target.value))}
+                      className={inputCls(!!errors.departamento)}
+                    >
+                      <option value={0}>Seleccionar...</option>
+                      {deptos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
+                    </select>
+                    {errors.departamento && <p className="text-red-500 text-xs mt-1">{errors.departamento.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Provincia *</label>
+                    <select
+                      value={watchProv || 0}
+                      onChange={e => onProvChange(Number(e.target.value))}
+                      disabled={!watchDepto || cargandoCatalogo}
+                      className={inputCls(!!errors.provincia) + " disabled:opacity-50"}
+                    >
+                      <option value={0}>
+                        {cargandoCatalogo ? "Cargando..." : "Seleccionar..."}
+                      </option>
+                      {provs.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                    </select>
+                    {errors.provincia && <p className="text-red-500 text-xs mt-1">{errors.provincia.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Municipio *</label>
+                    <select
+                      value={watchMuni || 0}
+                      onChange={e => onMuniChange(Number(e.target.value))}
+                      disabled={!watchProv || cargandoCatalogo}
+                      className={inputCls(!!errors.municipio) + " disabled:opacity-50"}
+                    >
+                      <option value={0}>
+                        {cargandoCatalogo ? "Cargando..." : "Seleccionar..."}
+                      </option>
+                      {munis.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+                    </select>
+                    {errors.municipio && <p className="text-red-500 text-xs mt-1">{errors.municipio.message}</p>}
+                  </div>
+                </div>
+
+                {/* ESTACIÓN DE SERVICIO */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    Estación de servicio *
+                  </label>
+                  <select
+                    {...register("estacion_servicio", { valueAsNumber: true })}
+                    disabled={!watchMuni || cargandoCatalogo}
+                    className={inputCls(!!errors.estacion_servicio) + " disabled:opacity-50"}
+                  >
+                    <option value={0}>
+                      {!watchMuni
+                        ? "Selecciona primero el municipio"
+                        : cargandoCatalogo
+                          ? "Cargando..."
+                          : estaciones.length === 0
+                            ? "Sin estaciones activas en este municipio"
+                            : "Seleccionar estación..."
+                      }
+                    </option>
+                    {estaciones.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                  </select>
+                  {errors.estacion_servicio && <p className="text-red-500 text-xs mt-1">{errors.estacion_servicio.message}</p>}
+                  <p className="text-xs text-slate-400 mt-1">
+                    La ANH confirmará la estación asignada al aprobar tu solicitud.
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Documento justificativo (opcional)
@@ -576,7 +746,10 @@ export default function MiSolicitud() {
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setMostrarForm(false); reset(); }}
+                <button type="button" onClick={() => {
+                    setMostrarForm(false); reset();
+                    setProvs([]); setMunis([]); setEstaciones([]);
+                  }}
                   className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
                   Cancelar
                 </button>

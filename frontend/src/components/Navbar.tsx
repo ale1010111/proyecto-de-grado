@@ -49,7 +49,7 @@ const navItems: Record<string, { label: string; path: string; icon: any }[]> = {
 
 const rolLabels: Record<string, string> = {
   CONS:  "Consumidor",
-  ESS:   "Estación de Servicio",
+  ESS:   "Operador ESS",
   ANH:   "Operador ANH",
   ADMIN: "Administrador",
 };
@@ -63,7 +63,7 @@ export default function Navbar() {
   const navigate         = useNavigate();
   const location         = useLocation();
 
-  const [menuOpen,    setMenuOpen]    = useState(false);
+  const [menuOpen,     setMenuOpen]     = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   if (!user) return null;
@@ -78,6 +78,11 @@ export default function Navbar() {
   const isActive = (path: string) =>
     location.pathname === path ||
     location.pathname.startsWith(path + "/");
+
+  // Subtítulo del rol — para ESS incluye el nombre de la estación
+  const rolSubtitulo = user.tipo_usuario === "ESS" && user.estacion_nombre
+    ? `Operador ESS — ${user.estacion_nombre}`
+    : rolLabels[user.tipo_usuario];
 
   return (
     <nav className="bg-[#1a3a5c] shadow-lg sticky top-0 z-50">
@@ -128,20 +133,30 @@ export default function Navbar() {
                 <p className="text-white text-sm font-medium leading-tight">
                   {user.nombres}
                 </p>
-                <p className="text-blue-300 text-xs leading-tight">
-                  {rolLabels[user.tipo_usuario]}
+                {/* Para ESS muestra "Operador ESS — E.S. POMPEYA YPFB" */}
+                <p className="text-blue-300 text-xs leading-tight max-w-48 truncate">
+                  {rolSubtitulo}
                 </p>
               </div>
               <ChevronDown className={`w-4 h-4 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50">
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50">
                 <div className="px-4 py-3 border-b border-slate-100">
                   <p className="text-slate-800 font-semibold text-sm truncate">
                     {user.nombres} {user.apellido_paterno}
                   </p>
                   <p className="text-slate-500 text-xs truncate">{user.email}</p>
+                  {/* Badge de estación para ESS */}
+                  {user.tipo_usuario === "ESS" && user.estacion_nombre && (
+                    <div className="mt-2 flex items-center gap-1.5 bg-blue-50 rounded-lg px-2.5 py-1.5">
+                      <Building2 className="w-3 h-3 text-blue-500 shrink-0" />
+                      <p className="text-blue-700 text-xs font-medium truncate">
+                        {user.estacion_nombre}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={handleLogout}
@@ -184,8 +199,19 @@ export default function Navbar() {
           ))}
           <div className="border-t border-white/10 pt-2 mt-2">
             <div className="px-3 py-2">
-              <p className="text-white text-sm font-medium">{user.nombres} {user.apellido_paterno}</p>
+              <p className="text-white text-sm font-medium">
+                {user.nombres} {user.apellido_paterno}
+              </p>
               <p className="text-blue-300 text-xs">{user.email}</p>
+              {/* Estación en mobile para ESS */}
+              {user.tipo_usuario === "ESS" && user.estacion_nombre && (
+                <div className="mt-1.5 flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1.5">
+                  <Building2 className="w-3 h-3 text-amber-400 shrink-0" />
+                  <p className="text-amber-300 text-xs font-medium truncate">
+                    {user.estacion_nombre}
+                  </p>
+                </div>
+              )}
             </div>
             <button
               onClick={handleLogout}

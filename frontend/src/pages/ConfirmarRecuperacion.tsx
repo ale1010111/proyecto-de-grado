@@ -1,5 +1,6 @@
 // src/pages/ConfirmarRecuperacion.tsx
 
+import { passwordSeguroSchema, PASSWORD_HELP_TEXT } from "../utils/passwordSchema";
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -9,7 +10,7 @@ import { authService } from "../services/auth.service";
 import { Flame, Eye, EyeOff, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 
 const schema = z.object({
-  password: z.string().min(8, "Mínimo 8 caracteres"),
+  password:  passwordSeguroSchema,
   password2: z.string().min(1, "Repite la contraseña"),
 }).refine(d => d.password === d.password2, {
   message: "Las contraseñas no coinciden",
@@ -140,7 +141,10 @@ export default function ConfirmarRecuperacion() {
                         placeholder="Mínimo 8 caracteres"
                         {...register("password")}
                         className={inputCls(!!errors.password) + " pr-11"}
+                        
                       />
+                      <p className="text-xs text-slate-400 mt-1">{PASSWORD_HELP_TEXT}</p>
+                      
                       <button
                         type="button"
                         onClick={() => setShowPass(!showPass)}

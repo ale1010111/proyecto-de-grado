@@ -8,6 +8,7 @@ from django.conf.urls.static import static
 
 from solicitudes.views_reportes import ReporteConsumidoresView
 from solicitudes.views_dashboard import DashboardANHView
+from solicitudes.views_estadisticas import EstadisticasSolicitudesView, ReporteSolicitudesView
 
 urlpatterns = [
 
@@ -85,7 +86,8 @@ urlpatterns = [
         ReporteConsumidoresView.as_view(),
         name="reporte-consumidores"
     ),
-
+    path("api/estadisticas/solicitudes/", EstadisticasSolicitudesView.as_view()),
+    path("api/reportes/solicitudes/", ReporteSolicitudesView.as_view()),
 
 ]
 

@@ -15,8 +15,8 @@ export default function Layout({ children }: Props) {
         {children}
       </main>
       <footer className="bg-[#1a3a5c] text-blue-300 text-xs text-center py-3">
-        © {new Date().getFullYear()} Agencia Nacional de Hidrocarburos — Bolivia
-      </footer>
+  © {new Date().getFullYear()}  Bolivia &nbsp;|&nbsp; Desarrollado por Alejandro Salinas
+</footer>
     </div>
   );
 }

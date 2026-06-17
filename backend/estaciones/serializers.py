@@ -37,9 +37,21 @@ class EstacionServicioReadSerializer(serializers.ModelSerializer):
     Incluye operadores ESS asignados y datos de auditoría.
     """
 
-    creada_por_nombre = serializers.SerializerMethodField()
-    operadores        = OperadorEstacionSerializer(many=True, read_only=True)
-    total_solicitudes = serializers.SerializerMethodField()
+    creada_por_nombre   = serializers.SerializerMethodField()
+    operadores          = OperadorEstacionSerializer(many=True, read_only=True)
+    total_solicitudes   = serializers.SerializerMethodField()
+    provincia_id    = serializers.IntegerField(
+        source="municipio.provincia.id", read_only=True
+    )
+    departamento_id = serializers.IntegerField(
+        source="municipio.provincia.departamento.id", read_only=True
+    )
+    municipio_nombre    = serializers.CharField(
+        source="municipio.nombre", read_only=True
+    )
+    departamento_nombre = serializers.CharField(
+        source="municipio.provincia.departamento.nombre", read_only=True
+    )
 
     class Meta:
         model = EstacionServicio
@@ -48,8 +60,11 @@ class EstacionServicioReadSerializer(serializers.ModelSerializer):
             "nombre",
             "codigo",
             "direccion",
+            "provincia_id", 
+            "departamento_id",
             "municipio",
-            "departamento",
+            "municipio_nombre",
+            "departamento_nombre",
             "estado",
             "operadores",
             "total_solicitudes",
@@ -85,14 +100,30 @@ class EstacionServicioListSerializer(serializers.ModelSerializer):
     Sin operadores ni conteos para mejor rendimiento.
     """
 
+    municipio_nombre    = serializers.CharField(
+        source="municipio.nombre", read_only=True
+    )
+    departamento_nombre = serializers.CharField(
+        source="municipio.provincia.departamento.nombre", read_only=True
+    )
+    provincia_id    = serializers.IntegerField(
+        source="municipio.provincia.id", read_only=True
+    )
+    departamento_id = serializers.IntegerField(
+        source="municipio.provincia.departamento.id", read_only=True
+    )
+
     class Meta:
         model = EstacionServicio
         fields = [
             "id",
             "nombre",
             "codigo",
+            "provincia_id", 
+            "departamento_id",
             "municipio",
-            "departamento",
+            "municipio_nombre",
+            "departamento_nombre",
             "estado",
         ]
 
@@ -115,7 +146,6 @@ class EstacionServicioWriteSerializer(serializers.ModelSerializer):
             "codigo",
             "direccion",
             "municipio",
-            "departamento",
             "estado",
         ]
 

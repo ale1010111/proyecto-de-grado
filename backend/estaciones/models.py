@@ -37,20 +37,22 @@ class EstacionServicio(models.Model):
     # UBICACIÓN
     # ------------------------------------------------
 
-    direccion    = models.CharField(
+    direccion = models.CharField(
         max_length=255,
         verbose_name="Dirección"
     )
 
-    municipio    = models.CharField(
-        max_length=100,
+    municipio = models.ForeignKey(
+        "catalogos.Municipio",
+        on_delete=models.PROTECT,
+        null=True,   # temporal — se vuelve obligatorio en la migración final
+        related_name="estaciones",
         verbose_name="Municipio"
     )
 
-    departamento = models.CharField(
-        max_length=100,
-        verbose_name="Departamento"
-    )
+    @property
+    def departamento(self):
+        return self.municipio.provincia.departamento if self.municipio else None
 
     # ------------------------------------------------
     # ESTADO
@@ -111,9 +113,8 @@ class EstacionServicio(models.Model):
     class Meta:
         verbose_name        = "Estación de Servicio"
         verbose_name_plural = "Estaciones de Servicio"
-        ordering            = ["departamento", "municipio", "nombre"]
-
+        ordering            = ["municipio__provincia__departamento__nombre", "municipio__nombre", "nombre"]
         indexes = [
             models.Index(fields=["estado"]),
-            models.Index(fields=["departamento", "municipio"]),
+            models.Index(fields=["municipio"]),
         ]
