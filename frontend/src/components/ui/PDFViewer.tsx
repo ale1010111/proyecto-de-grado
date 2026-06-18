@@ -2,7 +2,7 @@
 // Modal para visualizar PDFs inline sin descargar
 
 import { useState, useEffect } from "react";
-import { X, Download, ZoomIn, ZoomOut, Loader } from "lucide-react";
+import { X, Download, Loader } from "lucide-react";
 
 
 interface PDFViewerProps {
