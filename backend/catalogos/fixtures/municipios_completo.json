@@ -5,7 +5,7 @@
     "fields": {
       "nombre": "Trinidad",
       "provincia": 1,
-      "codigo": "BE-P001-100"
+      "codigo": "P001M001"
     }
   },
   {
@@ -14,7 +14,7 @@
     "fields": {
       "nombre": "San Javier",
       "provincia": 1,
-      "codigo": "BE-P001-101"
+      "codigo": "P001M002"
     }
   },
   {
@@ -23,7 +23,7 @@
     "fields": {
       "nombre": "Riberalta",
       "provincia": 2,
-      "codigo": "BE-P002-100"
+      "codigo": "P002M001"
     }
   },
   {
@@ -32,7 +32,7 @@
     "fields": {
       "nombre": "Guayaramerín",
       "provincia": 2,
-      "codigo": "BE-P002-101"
+      "codigo": "P002M002"
     }
   },
   {
@@ -41,7 +41,7 @@
     "fields": {
       "nombre": "Loreto",
       "provincia": 3,
-      "codigo": "BE-P003-100"
+      "codigo": "P003M001"
     }
   },
   {
@@ -50,7 +50,7 @@
     "fields": {
       "nombre": "San Andrés",
       "provincia": 3,
-      "codigo": "BE-P003-101"
+      "codigo": "P003M002"
     }
   },
   {
@@ -59,7 +59,7 @@
     "fields": {
       "nombre": "San Ignacio de Moxos",
       "provincia": 4,
-      "codigo": "BE-P004-100"
+      "codigo": "P004M001"
     }
   },
   {
@@ -68,7 +68,7 @@
     "fields": {
       "nombre": "Reyes",
       "provincia": 5,
-      "codigo": "BE-P005-100"
+      "codigo": "P005M001"
     }
   },
   {
@@ -77,7 +77,7 @@
     "fields": {
       "nombre": "San Borja",
       "provincia": 5,
-      "codigo": "BE-P005-101"
+      "codigo": "P005M002"
     }
   },
   {
@@ -86,7 +86,7 @@
     "fields": {
       "nombre": "Santa Rosa",
       "provincia": 5,
-      "codigo": "BE-P005-102"
+      "codigo": "P005M003"
     }
   },
   {
@@ -95,7 +95,7 @@
     "fields": {
       "nombre": "Rurrenabaque",
       "provincia": 5,
-      "codigo": "BE-P005-103"
+      "codigo": "P005M004"
     }
   },
   {
@@ -104,7 +104,7 @@
     "fields": {
       "nombre": "Magdalena",
       "provincia": 6,
-      "codigo": "BE-P006-100"
+      "codigo": "P006M001"
     }
   },
   {
@@ -113,7 +113,7 @@
     "fields": {
       "nombre": "Baures",
       "provincia": 6,
-      "codigo": "BE-P006-101"
+      "codigo": "P006M002"
     }
   },
   {
@@ -122,7 +122,7 @@
     "fields": {
       "nombre": "Huacaraje",
       "provincia": 6,
-      "codigo": "BE-P006-102"
+      "codigo": "P006M003"
     }
   },
   {
@@ -131,7 +131,7 @@
     "fields": {
       "nombre": "San Joaquín",
       "provincia": 7,
-      "codigo": "BE-P007-100"
+      "codigo": "P007M001"
     }
   },
   {
@@ -140,7 +140,7 @@
     "fields": {
       "nombre": "San Ramón",
       "provincia": 7,
-      "codigo": "BE-P007-101"
+      "codigo": "P007M002"
     }
   },
   {
@@ -149,7 +149,7 @@
     "fields": {
       "nombre": "Puerto Siles",
       "provincia": 7,
-      "codigo": "BE-P007-102"
+      "codigo": "P007M003"
     }
   },
   {
@@ -158,7 +158,7 @@
     "fields": {
       "nombre": "Santa Ana del Yacuma",
       "provincia": 8,
-      "codigo": "BE-P008-100"
+      "codigo": "P008M001"
     }
   },
   {
@@ -167,7 +167,7 @@
     "fields": {
       "nombre": "Exaltación",
       "provincia": 8,
-      "codigo": "BE-P008-101"
+      "codigo": "P008M002"
     }
   },
   {
@@ -176,7 +176,7 @@
     "fields": {
       "nombre": "Sucre",
       "provincia": 9,
-      "codigo": "CH-P009-100"
+      "codigo": "P009M001"
     }
   },
   {
@@ -185,7 +185,7 @@
     "fields": {
       "nombre": "Yotala",
       "provincia": 9,
-      "codigo": "CH-P009-101"
+      "codigo": "P009M002"
     }
   },
   {
@@ -194,7 +194,7 @@
     "fields": {
       "nombre": "Poroma",
       "provincia": 9,
-      "codigo": "CH-P009-102"
+      "codigo": "P009M003"
     }
   },
   {
@@ -203,7 +203,7 @@
     "fields": {
       "nombre": "Azurduy",
       "provincia": 10,
-      "codigo": "CH-P010-100"
+      "codigo": "P010M001"
     }
   },
   {
@@ -212,7 +212,7 @@
     "fields": {
       "nombre": "Tarvita",
       "provincia": 10,
-      "codigo": "CH-P010-101"
+      "codigo": "P010M002"
     }
   },
   {
@@ -221,7 +221,7 @@
     "fields": {
       "nombre": "Villa Zudáñez",
       "provincia": 11,
-      "codigo": "CH-P011-100"
+      "codigo": "P011M001"
     }
   },
   {
@@ -230,7 +230,7 @@
     "fields": {
       "nombre": "Presto",
       "provincia": 11,
-      "codigo": "CH-P011-101"
+      "codigo": "P011M002"
     }
   },
   {
@@ -239,7 +239,7 @@
     "fields": {
       "nombre": "Villa Mojocoya",
       "provincia": 11,
-      "codigo": "CH-P011-102"
+      "codigo": "P011M003"
     }
   },
   {
@@ -248,7 +248,7 @@
     "fields": {
       "nombre": "Icla",
       "provincia": 11,
-      "codigo": "CH-P011-103"
+      "codigo": "P011M004"
     }
   },
   {
@@ -257,7 +257,7 @@
     "fields": {
       "nombre": "Padilla",
       "provincia": 12,
-      "codigo": "CH-P012-100"
+      "codigo": "P012M001"
     }
   },
   {
@@ -266,7 +266,7 @@
     "fields": {
       "nombre": "Tomina",
       "provincia": 12,
-      "codigo": "CH-P012-101"
+      "codigo": "P012M002"
     }
   },
   {
@@ -275,7 +275,7 @@
     "fields": {
       "nombre": "Sopachuy",
       "provincia": 12,
-      "codigo": "CH-P012-102"
+      "codigo": "P012M003"
     }
   },
   {
@@ -284,7 +284,7 @@
     "fields": {
       "nombre": "Villa Alcalá",
       "provincia": 12,
-      "codigo": "CH-P012-103"
+      "codigo": "P012M004"
     }
   },
   {
@@ -293,7 +293,7 @@
     "fields": {
       "nombre": "El Villar",
       "provincia": 12,
-      "codigo": "CH-P012-104"
+      "codigo": "P012M005"
     }
   },
   {
@@ -302,7 +302,7 @@
     "fields": {
       "nombre": "Monteagudo",
       "provincia": 13,
-      "codigo": "CH-P013-100"
+      "codigo": "P013M001"
     }
   },
   {
@@ -311,7 +311,7 @@
     "fields": {
       "nombre": "Huacareta",
       "provincia": 13,
-      "codigo": "CH-P013-101"
+      "codigo": "P013M002"
     }
   },
   {
@@ -320,7 +320,7 @@
     "fields": {
       "nombre": "Tarabuco",
       "provincia": 14,
-      "codigo": "CH-P014-100"
+      "codigo": "P014M001"
     }
   },
   {
@@ -329,7 +329,7 @@
     "fields": {
       "nombre": "Yamparáez",
       "provincia": 14,
-      "codigo": "CH-P014-101"
+      "codigo": "P014M002"
     }
   },
   {
@@ -338,7 +338,7 @@
     "fields": {
       "nombre": "Camargo",
       "provincia": 15,
-      "codigo": "CH-P015-100"
+      "codigo": "P015M001"
     }
   },
   {
@@ -347,7 +347,7 @@
     "fields": {
       "nombre": "San Lucas",
       "provincia": 15,
-      "codigo": "CH-P015-101"
+      "codigo": "P015M002"
     }
   },
   {
@@ -356,7 +356,7 @@
     "fields": {
       "nombre": "Incahuasi",
       "provincia": 15,
-      "codigo": "CH-P015-102"
+      "codigo": "P015M003"
     }
   },
   {
@@ -365,7 +365,7 @@
     "fields": {
       "nombre": "Villa Charcas",
       "provincia": 15,
-      "codigo": "CH-P015-103"
+      "codigo": "P015M004"
     }
   },
   {
@@ -374,7 +374,7 @@
     "fields": {
       "nombre": "Villa Abecia",
       "provincia": 16,
-      "codigo": "CH-P016-100"
+      "codigo": "P016M001"
     }
   },
   {
@@ -383,7 +383,7 @@
     "fields": {
       "nombre": "Culpina",
       "provincia": 16,
-      "codigo": "CH-P016-101"
+      "codigo": "P016M002"
     }
   },
   {
@@ -392,7 +392,7 @@
     "fields": {
       "nombre": "Las Carreras",
       "provincia": 16,
-      "codigo": "CH-P016-102"
+      "codigo": "P016M003"
     }
   },
   {
@@ -401,7 +401,7 @@
     "fields": {
       "nombre": "Villa Vaca Guzmán",
       "provincia": 17,
-      "codigo": "CH-P017-100"
+      "codigo": "P017M001"
     }
   },
   {
@@ -410,7 +410,7 @@
     "fields": {
       "nombre": "Huacaya",
       "provincia": 17,
-      "codigo": "CH-P017-101"
+      "codigo": "P017M002"
     }
   },
   {
@@ -419,7 +419,7 @@
     "fields": {
       "nombre": "Macharetí",
       "provincia": 17,
-      "codigo": "CH-P017-102"
+      "codigo": "P017M003"
     }
   },
   {
@@ -428,7 +428,7 @@
     "fields": {
       "nombre": "Villa Serrano",
       "provincia": 18,
-      "codigo": "CH-P018-100"
+      "codigo": "P018M001"
     }
   },
   {
@@ -437,7 +437,7 @@
     "fields": {
       "nombre": "Cochabamba",
       "provincia": 19,
-      "codigo": "CB-P019-100"
+      "codigo": "P019M001"
     }
   },
   {
@@ -446,7 +446,7 @@
     "fields": {
       "nombre": "Independencia",
       "provincia": 20,
-      "codigo": "CB-P020-100"
+      "codigo": "P020M001"
     }
   },
   {
@@ -455,7 +455,7 @@
     "fields": {
       "nombre": "Morochata",
       "provincia": 20,
-      "codigo": "CB-P020-101"
+      "codigo": "P020M002"
     }
   },
   {
@@ -464,7 +464,7 @@
     "fields": {
       "nombre": "Cocapata",
       "provincia": 20,
-      "codigo": "CB-P020-102"
+      "codigo": "P020M003"
     }
   },
   {
@@ -473,7 +473,7 @@
     "fields": {
       "nombre": "Arani",
       "provincia": 22,
-      "codigo": "CB-P022-100"
+      "codigo": "P022M001"
     }
   },
   {
@@ -482,7 +482,7 @@
     "fields": {
       "nombre": "Vacas",
       "provincia": 22,
-      "codigo": "CB-P022-101"
+      "codigo": "P022M002"
     }
   },
   {
@@ -491,7 +491,7 @@
     "fields": {
       "nombre": "Arque",
       "provincia": 23,
-      "codigo": "CB-P023-100"
+      "codigo": "P023M001"
     }
   },
   {
@@ -500,7 +500,7 @@
     "fields": {
       "nombre": "Tacopaya",
       "provincia": 23,
-      "codigo": "CB-P023-101"
+      "codigo": "P023M002"
     }
   },
   {
@@ -509,7 +509,7 @@
     "fields": {
       "nombre": "Capinota",
       "provincia": 24,
-      "codigo": "CB-P024-100"
+      "codigo": "P024M001"
     }
   },
   {
@@ -518,7 +518,7 @@
     "fields": {
       "nombre": "Santiváñez",
       "provincia": 24,
-      "codigo": "CB-P024-101"
+      "codigo": "P024M002"
     }
   },
   {
@@ -527,7 +527,7 @@
     "fields": {
       "nombre": "Sicaya",
       "provincia": 24,
-      "codigo": "CB-P024-102"
+      "codigo": "P024M003"
     }
   },
   {
@@ -536,7 +536,7 @@
     "fields": {
       "nombre": "Cliza",
       "provincia": 25,
-      "codigo": "CB-P025-100"
+      "codigo": "P025M001"
     }
   },
   {
@@ -545,7 +545,7 @@
     "fields": {
       "nombre": "Toco",
       "provincia": 25,
-      "codigo": "CB-P025-101"
+      "codigo": "P025M002"
     }
   },
   {
@@ -554,7 +554,7 @@
     "fields": {
       "nombre": "Tolata",
       "provincia": 25,
-      "codigo": "CB-P025-102"
+      "codigo": "P025M003"
     }
   },
   {
@@ -563,7 +563,7 @@
     "fields": {
       "nombre": "Quillacollo",
       "provincia": 26,
-      "codigo": "CB-P026-100"
+      "codigo": "P026M001"
     }
   },
   {
@@ -572,7 +572,7 @@
     "fields": {
       "nombre": "Sipe Sipe",
       "provincia": 26,
-      "codigo": "CB-P026-101"
+      "codigo": "P026M002"
     }
   },
   {
@@ -581,7 +581,7 @@
     "fields": {
       "nombre": "Tiquipaya",
       "provincia": 26,
-      "codigo": "CB-P026-102"
+      "codigo": "P026M003"
     }
   },
   {
@@ -590,7 +590,7 @@
     "fields": {
       "nombre": "Vinto",
       "provincia": 26,
-      "codigo": "CB-P026-103"
+      "codigo": "P026M004"
     }
   },
   {
@@ -599,7 +599,7 @@
     "fields": {
       "nombre": "Colcapirhua",
       "provincia": 26,
-      "codigo": "CB-P026-104"
+      "codigo": "P026M005"
     }
   },
   {
@@ -608,7 +608,7 @@
     "fields": {
       "nombre": "Sacaba",
       "provincia": 27,
-      "codigo": "CB-P027-100"
+      "codigo": "P027M001"
     }
   },
   {
@@ -617,7 +617,7 @@
     "fields": {
       "nombre": "Colomi",
       "provincia": 27,
-      "codigo": "CB-P027-101"
+      "codigo": "P027M002"
     }
   },
   {
@@ -626,7 +626,7 @@
     "fields": {
       "nombre": "Villa Tunari",
       "provincia": 27,
-      "codigo": "CB-P027-102"
+      "codigo": "P027M003"
     }
   },
   {
@@ -635,7 +635,7 @@
     "fields": {
       "nombre": "Tapacarí",
       "provincia": 28,
-      "codigo": "CB-P028-100"
+      "codigo": "P028M001"
     }
   },
   {
@@ -644,7 +644,7 @@
     "fields": {
       "nombre": "Tiraque",
       "provincia": 29,
-      "codigo": "CB-P029-100"
+      "codigo": "P029M001"
     }
   },
   {
@@ -653,7 +653,7 @@
     "fields": {
       "nombre": "Shinahota",
       "provincia": 29,
-      "codigo": "CB-P029-101"
+      "codigo": "P029M002"
     }
   },
   {
@@ -662,7 +662,7 @@
     "fields": {
       "nombre": "Bolívar",
       "provincia": 30,
-      "codigo": "CB-P030-100"
+      "codigo": "P030M001"
     }
   },
   {
@@ -671,7 +671,7 @@
     "fields": {
       "nombre": "Totora",
       "provincia": 31,
-      "codigo": "CB-P031-100"
+      "codigo": "P031M001"
     }
   },
   {
@@ -680,7 +680,7 @@
     "fields": {
       "nombre": "Pojo",
       "provincia": 31,
-      "codigo": "CB-P031-101"
+      "codigo": "P031M002"
     }
   },
   {
@@ -689,7 +689,7 @@
     "fields": {
       "nombre": "Pocona",
       "provincia": 31,
-      "codigo": "CB-P031-102"
+      "codigo": "P031M003"
     }
   },
   {
@@ -698,7 +698,7 @@
     "fields": {
       "nombre": "Chimoré",
       "provincia": 31,
-      "codigo": "CB-P031-103"
+      "codigo": "P031M004"
     }
   },
   {
@@ -707,7 +707,7 @@
     "fields": {
       "nombre": "Puerto Villarroel",
       "provincia": 31,
-      "codigo": "CB-P031-104"
+      "codigo": "P031M005"
     }
   },
   {
@@ -716,7 +716,7 @@
     "fields": {
       "nombre": "Entre Ríos",
       "provincia": 31,
-      "codigo": "CB-P031-105"
+      "codigo": "P031M006"
     }
   },
   {
@@ -725,7 +725,7 @@
     "fields": {
       "nombre": "Mizque",
       "provincia": 32,
-      "codigo": "CB-P032-100"
+      "codigo": "P032M001"
     }
   },
   {
@@ -734,7 +734,7 @@
     "fields": {
       "nombre": "Vila Vila",
       "provincia": 32,
-      "codigo": "CB-P032-101"
+      "codigo": "P032M002"
     }
   },
   {
@@ -743,7 +743,7 @@
     "fields": {
       "nombre": "Alalay",
       "provincia": 32,
-      "codigo": "CB-P032-102"
+      "codigo": "P032M003"
     }
   },
   {
@@ -752,7 +752,7 @@
     "fields": {
       "nombre": "Aiquile",
       "provincia": 33,
-      "codigo": "CB-P033-100"
+      "codigo": "P033M001"
     }
   },
   {
@@ -761,7 +761,7 @@
     "fields": {
       "nombre": "Pasorapa",
       "provincia": 33,
-      "codigo": "CB-P033-101"
+      "codigo": "P033M002"
     }
   },
   {
@@ -770,7 +770,7 @@
     "fields": {
       "nombre": "Omereque",
       "provincia": 33,
-      "codigo": "CB-P033-102"
+      "codigo": "P033M003"
     }
   },
   {
@@ -779,7 +779,7 @@
     "fields": {
       "nombre": "Punata",
       "provincia": 34,
-      "codigo": "CB-P034-100"
+      "codigo": "P034M001"
     }
   },
   {
@@ -788,7 +788,7 @@
     "fields": {
       "nombre": "Villa Rivero",
       "provincia": 34,
-      "codigo": "CB-P034-101"
+      "codigo": "P034M002"
     }
   },
   {
@@ -797,7 +797,7 @@
     "fields": {
       "nombre": "San Benito",
       "provincia": 34,
-      "codigo": "CB-P034-102"
+      "codigo": "P034M003"
     }
   },
   {
@@ -806,7 +806,7 @@
     "fields": {
       "nombre": "Tacachi",
       "provincia": 34,
-      "codigo": "CB-P034-103"
+      "codigo": "P034M004"
     }
   },
   {
@@ -815,7 +815,7 @@
     "fields": {
       "nombre": "Cuchumuela",
       "provincia": 34,
-      "codigo": "CB-P034-104"
+      "codigo": "P034M005"
     }
   },
   {
@@ -824,7 +824,7 @@
     "fields": {
       "nombre": "Tarata",
       "provincia": 21,
-      "codigo": "CB-P021-100"
+      "codigo": "P021M001"
     }
   },
   {
@@ -833,7 +833,7 @@
     "fields": {
       "nombre": "Anzaldo",
       "provincia": 21,
-      "codigo": "CB-P021-101"
+      "codigo": "P021M002"
     }
   },
   {
@@ -842,7 +842,7 @@
     "fields": {
       "nombre": "Arbieto",
       "provincia": 21,
-      "codigo": "CB-P021-102"
+      "codigo": "P021M003"
     }
   },
   {
@@ -851,7 +851,7 @@
     "fields": {
       "nombre": "Sacabamba",
       "provincia": 21,
-      "codigo": "CB-P021-103"
+      "codigo": "P021M004"
     }
   },
   {
@@ -860,7 +860,7 @@
     "fields": {
       "nombre": "La Paz",
       "provincia": 37,
-      "codigo": "LP-P037-100"
+      "codigo": "P037M001"
     }
   },
   {
@@ -869,7 +869,7 @@
     "fields": {
       "nombre": "Palca",
       "provincia": 37,
-      "codigo": "LP-P037-101"
+      "codigo": "P037M002"
     }
   },
   {
@@ -878,7 +878,7 @@
     "fields": {
       "nombre": "Mecapaca",
       "provincia": 37,
-      "codigo": "LP-P037-102"
+      "codigo": "P037M003"
     }
   },
   {
@@ -887,7 +887,7 @@
     "fields": {
       "nombre": "Achocalla",
       "provincia": 37,
-      "codigo": "LP-P037-103"
+      "codigo": "P037M004"
     }
   },
   {
@@ -896,7 +896,7 @@
     "fields": {
       "nombre": "El Alto",
       "provincia": 37,
-      "codigo": "LP-P037-104"
+      "codigo": "P037M005"
     }
   },
   {
@@ -905,7 +905,7 @@
     "fields": {
       "nombre": "Achacachi",
       "provincia": 38,
-      "codigo": "LP-P038-100"
+      "codigo": "P038M001"
     }
   },
   {
@@ -914,7 +914,7 @@
     "fields": {
       "nombre": "Ancoraimes",
       "provincia": 38,
-      "codigo": "LP-P038-101"
+      "codigo": "P038M002"
     }
   },
   {
@@ -923,7 +923,7 @@
     "fields": {
       "nombre": "Chua Cocani",
       "provincia": 38,
-      "codigo": "LP-P038-102"
+      "codigo": "P038M003"
     }
   },
   {
@@ -932,7 +932,7 @@
     "fields": {
       "nombre": "Huarina",
       "provincia": 38,
-      "codigo": "LP-P038-103"
+      "codigo": "P038M004"
     }
   },
   {
@@ -941,7 +941,7 @@
     "fields": {
       "nombre": "Santiago de Huata",
       "provincia": 38,
-      "codigo": "LP-P038-104"
+      "codigo": "P038M005"
     }
   },
   {
@@ -950,7 +950,7 @@
     "fields": {
       "nombre": "Huatajata",
       "provincia": 38,
-      "codigo": "LP-P038-105"
+      "codigo": "P038M006"
     }
   },
   {
@@ -959,7 +959,7 @@
     "fields": {
       "nombre": "Coro Coro",
       "provincia": 39,
-      "codigo": "LP-P039-100"
+      "codigo": "P039M001"
     }
   },
   {
@@ -968,7 +968,7 @@
     "fields": {
       "nombre": "Caquiaviri",
       "provincia": 39,
-      "codigo": "LP-P039-101"
+      "codigo": "P039M002"
     }
   },
   {
@@ -977,7 +977,7 @@
     "fields": {
       "nombre": "Calacoto",
       "provincia": 39,
-      "codigo": "LP-P039-102"
+      "codigo": "P039M003"
     }
   },
   {
@@ -986,7 +986,7 @@
     "fields": {
       "nombre": "Comanche",
       "provincia": 39,
-      "codigo": "LP-P039-103"
+      "codigo": "P039M004"
     }
   },
   {
@@ -995,7 +995,7 @@
     "fields": {
       "nombre": "Charaña",
       "provincia": 39,
-      "codigo": "LP-P039-104"
+      "codigo": "P039M005"
     }
   },
   {
@@ -1004,7 +1004,7 @@
     "fields": {
       "nombre": "Waldo Ballivián",
       "provincia": 39,
-      "codigo": "LP-P039-105"
+      "codigo": "P039M006"
     }
   },
   {
@@ -1013,7 +1013,7 @@
     "fields": {
       "nombre": "Nazacara de Pacajes",
       "provincia": 39,
-      "codigo": "LP-P039-106"
+      "codigo": "P039M007"
     }
   },
   {
@@ -1022,7 +1022,7 @@
     "fields": {
       "nombre": "Callapa",
       "provincia": 39,
-      "codigo": "LP-P039-107"
+      "codigo": "P039M008"
     }
   },
   {
@@ -1031,7 +1031,7 @@
     "fields": {
       "nombre": "Puerto Acosta",
       "provincia": 40,
-      "codigo": "LP-P040-100"
+      "codigo": "P040M001"
     }
   },
   {
@@ -1040,7 +1040,7 @@
     "fields": {
       "nombre": "Mocomoco",
       "provincia": 40,
-      "codigo": "LP-P040-101"
+      "codigo": "P040M002"
     }
   },
   {
@@ -1049,7 +1049,7 @@
     "fields": {
       "nombre": "Puerto Carabuco",
       "provincia": 40,
-      "codigo": "LP-P040-102"
+      "codigo": "P040M003"
     }
   },
   {
@@ -1058,7 +1058,7 @@
     "fields": {
       "nombre": "Humanata",
       "provincia": 40,
-      "codigo": "LP-P040-103"
+      "codigo": "P040M004"
     }
   },
   {
@@ -1067,7 +1067,7 @@
     "fields": {
       "nombre": "Escoma",
       "provincia": 40,
-      "codigo": "LP-P040-104"
+      "codigo": "P040M005"
     }
   },
   {
@@ -1076,7 +1076,7 @@
     "fields": {
       "nombre": "Chuma",
       "provincia": 41,
-      "codigo": "LP-P041-100"
+      "codigo": "P041M001"
     }
   },
   {
@@ -1085,7 +1085,7 @@
     "fields": {
       "nombre": "Ayata",
       "provincia": 41,
-      "codigo": "LP-P041-101"
+      "codigo": "P041M002"
     }
   },
   {
@@ -1094,7 +1094,7 @@
     "fields": {
       "nombre": "Aucapata",
       "provincia": 41,
-      "codigo": "LP-P041-102"
+      "codigo": "P041M003"
     }
   },
   {
@@ -1103,7 +1103,7 @@
     "fields": {
       "nombre": "Sorata",
       "provincia": 42,
-      "codigo": "LP-P042-100"
+      "codigo": "P042M001"
     }
   },
   {
@@ -1112,7 +1112,7 @@
     "fields": {
       "nombre": "Guanay",
       "provincia": 42,
-      "codigo": "LP-P042-101"
+      "codigo": "P042M002"
     }
   },
   {
@@ -1121,7 +1121,7 @@
     "fields": {
       "nombre": "Tacacoma",
       "provincia": 42,
-      "codigo": "LP-P042-102"
+      "codigo": "P042M003"
     }
   },
   {
@@ -1130,7 +1130,7 @@
     "fields": {
       "nombre": "Quiabaya",
       "provincia": 42,
-      "codigo": "LP-P042-103"
+      "codigo": "P042M004"
     }
   },
   {
@@ -1139,7 +1139,7 @@
     "fields": {
       "nombre": "Combaya",
       "provincia": 42,
-      "codigo": "LP-P042-104"
+      "codigo": "P042M005"
     }
   },
   {
@@ -1148,7 +1148,7 @@
     "fields": {
       "nombre": "Tipuani",
       "provincia": 42,
-      "codigo": "LP-P042-105"
+      "codigo": "P042M006"
     }
   },
   {
@@ -1157,7 +1157,7 @@
     "fields": {
       "nombre": "Mapiri",
       "provincia": 42,
-      "codigo": "LP-P042-106"
+      "codigo": "P042M007"
     }
   },
   {
@@ -1166,7 +1166,7 @@
     "fields": {
       "nombre": "Teoponte",
       "provincia": 42,
-      "codigo": "LP-P042-107"
+      "codigo": "P042M008"
     }
   },
   {
@@ -1175,7 +1175,7 @@
     "fields": {
       "nombre": "Apolo",
       "provincia": 43,
-      "codigo": "LP-P043-100"
+      "codigo": "P043M001"
     }
   },
   {
@@ -1184,7 +1184,7 @@
     "fields": {
       "nombre": "Pelechuco",
       "provincia": 43,
-      "codigo": "LP-P043-101"
+      "codigo": "P043M002"
     }
   },
   {
@@ -1193,7 +1193,7 @@
     "fields": {
       "nombre": "Viacha",
       "provincia": 44,
-      "codigo": "LP-P044-100"
+      "codigo": "P044M001"
     }
   },
   {
@@ -1202,7 +1202,7 @@
     "fields": {
       "nombre": "Guaqui",
       "provincia": 44,
-      "codigo": "LP-P044-101"
+      "codigo": "P044M002"
     }
   },
   {
@@ -1211,7 +1211,7 @@
     "fields": {
       "nombre": "Tiahuanaco",
       "provincia": 44,
-      "codigo": "LP-P044-102"
+      "codigo": "P044M003"
     }
   },
   {
@@ -1220,7 +1220,7 @@
     "fields": {
       "nombre": "Desaguadero",
       "provincia": 44,
-      "codigo": "LP-P044-103"
+      "codigo": "P044M004"
     }
   },
   {
@@ -1229,7 +1229,7 @@
     "fields": {
       "nombre": "San Andrés de Machaca",
       "provincia": 44,
-      "codigo": "LP-P044-104"
+      "codigo": "P044M005"
     }
   },
   {
@@ -1238,7 +1238,7 @@
     "fields": {
       "nombre": "Jesús de Machaca",
       "provincia": 44,
-      "codigo": "LP-P044-105"
+      "codigo": "P044M006"
     }
   },
   {
@@ -1247,7 +1247,7 @@
     "fields": {
       "nombre": "Taraco",
       "provincia": 44,
-      "codigo": "LP-P044-106"
+      "codigo": "P044M007"
     }
   },
   {
@@ -1256,7 +1256,7 @@
     "fields": {
       "nombre": "Luribay",
       "provincia": 45,
-      "codigo": "LP-P045-100"
+      "codigo": "P045M001"
     }
   },
   {
@@ -1265,7 +1265,7 @@
     "fields": {
       "nombre": "Sapahaqui",
       "provincia": 45,
-      "codigo": "LP-P045-101"
+      "codigo": "P045M002"
     }
   },
   {
@@ -1274,7 +1274,7 @@
     "fields": {
       "nombre": "Yaco",
       "provincia": 45,
-      "codigo": "LP-P045-102"
+      "codigo": "P045M003"
     }
   },
   {
@@ -1283,7 +1283,7 @@
     "fields": {
       "nombre": "Malla",
       "provincia": 45,
-      "codigo": "LP-P045-103"
+      "codigo": "P045M004"
     }
   },
   {
@@ -1292,7 +1292,7 @@
     "fields": {
       "nombre": "Cairoma",
       "provincia": 45,
-      "codigo": "LP-P045-104"
+      "codigo": "P045M005"
     }
   },
   {
@@ -1301,7 +1301,7 @@
     "fields": {
       "nombre": "Inquisivi",
       "provincia": 46,
-      "codigo": "LP-P046-100"
+      "codigo": "P046M001"
     }
   },
   {
@@ -1310,7 +1310,7 @@
     "fields": {
       "nombre": "Quime",
       "provincia": 46,
-      "codigo": "LP-P046-101"
+      "codigo": "P046M002"
     }
   },
   {
@@ -1319,7 +1319,7 @@
     "fields": {
       "nombre": "Cajuata",
       "provincia": 46,
-      "codigo": "LP-P046-102"
+      "codigo": "P046M003"
     }
   },
   {
@@ -1328,7 +1328,7 @@
     "fields": {
       "nombre": "Colquiri",
       "provincia": 46,
-      "codigo": "LP-P046-103"
+      "codigo": "P046M004"
     }
   },
   {
@@ -1337,7 +1337,7 @@
     "fields": {
       "nombre": "Ichoca",
       "provincia": 46,
-      "codigo": "LP-P046-104"
+      "codigo": "P046M005"
     }
   },
   {
@@ -1346,7 +1346,7 @@
     "fields": {
       "nombre": "Licoma Pampa",
       "provincia": 46,
-      "codigo": "LP-P046-105"
+      "codigo": "P046M006"
     }
   },
   {
@@ -1355,7 +1355,7 @@
     "fields": {
       "nombre": "Chulumani",
       "provincia": 47,
-      "codigo": "LP-P047-100"
+      "codigo": "P047M001"
     }
   },
   {
@@ -1364,7 +1364,7 @@
     "fields": {
       "nombre": "Irupana",
       "provincia": 47,
-      "codigo": "LP-P047-101"
+      "codigo": "P047M002"
     }
   },
   {
@@ -1373,7 +1373,7 @@
     "fields": {
       "nombre": "Yanacachi",
       "provincia": 47,
-      "codigo": "LP-P047-102"
+      "codigo": "P047M003"
     }
   },
   {
@@ -1382,7 +1382,7 @@
     "fields": {
       "nombre": "Palos Blancos",
       "provincia": 47,
-      "codigo": "LP-P047-103"
+      "codigo": "P047M004"
     }
   },
   {
@@ -1391,7 +1391,7 @@
     "fields": {
       "nombre": "La Asunta",
       "provincia": 47,
-      "codigo": "LP-P047-104"
+      "codigo": "P047M005"
     }
   },
   {
@@ -1400,7 +1400,7 @@
     "fields": {
       "nombre": "Coroico",
       "provincia": 48,
-      "codigo": "LP-P048-100"
+      "codigo": "P048M001"
     }
   },
   {
@@ -1409,7 +1409,7 @@
     "fields": {
       "nombre": "Coripata",
       "provincia": 48,
-      "codigo": "LP-P048-101"
+      "codigo": "P048M002"
     }
   },
   {
@@ -1418,7 +1418,7 @@
     "fields": {
       "nombre": "Ixiamas",
       "provincia": 49,
-      "codigo": "LP-P049-100"
+      "codigo": "P049M001"
     }
   },
   {
@@ -1427,7 +1427,7 @@
     "fields": {
       "nombre": "San Buenaventura",
       "provincia": 49,
-      "codigo": "LP-P049-101"
+      "codigo": "P049M002"
     }
   },
   {
@@ -1436,7 +1436,7 @@
     "fields": {
       "nombre": "Charazani",
       "provincia": 50,
-      "codigo": "LP-P050-100"
+      "codigo": "P050M001"
     }
   },
   {
@@ -1445,7 +1445,7 @@
     "fields": {
       "nombre": "Curva",
       "provincia": 50,
-      "codigo": "LP-P050-101"
+      "codigo": "P050M002"
     }
   },
   {
@@ -1454,7 +1454,7 @@
     "fields": {
       "nombre": "Copacabana",
       "provincia": 51,
-      "codigo": "LP-P051-100"
+      "codigo": "P051M001"
     }
   },
   {
@@ -1463,7 +1463,7 @@
     "fields": {
       "nombre": "San Pedro de Tiquina",
       "provincia": 51,
-      "codigo": "LP-P051-101"
+      "codigo": "P051M002"
     }
   },
   {
@@ -1472,7 +1472,7 @@
     "fields": {
       "nombre": "Tito Yupanqui",
       "provincia": 51,
-      "codigo": "LP-P051-102"
+      "codigo": "P051M003"
     }
   },
   {
@@ -1481,7 +1481,7 @@
     "fields": {
       "nombre": "San Pedro de Curahuara",
       "provincia": 52,
-      "codigo": "LP-P052-100"
+      "codigo": "P052M001"
     }
   },
   {
@@ -1490,7 +1490,7 @@
     "fields": {
       "nombre": "Papel Pampa",
       "provincia": 52,
-      "codigo": "LP-P052-101"
+      "codigo": "P052M002"
     }
   },
   {
@@ -1499,7 +1499,7 @@
     "fields": {
       "nombre": "Chacarilla",
       "provincia": 52,
-      "codigo": "LP-P052-102"
+      "codigo": "P052M003"
     }
   },
   {
@@ -1508,7 +1508,7 @@
     "fields": {
       "nombre": "Pucarani",
       "provincia": 53,
-      "codigo": "LP-P053-100"
+      "codigo": "P053M001"
     }
   },
   {
@@ -1517,7 +1517,7 @@
     "fields": {
       "nombre": "Laja",
       "provincia": 53,
-      "codigo": "LP-P053-101"
+      "codigo": "P053M002"
     }
   },
   {
@@ -1526,7 +1526,7 @@
     "fields": {
       "nombre": "Batallas",
       "provincia": 53,
-      "codigo": "LP-P053-102"
+      "codigo": "P053M003"
     }
   },
   {
@@ -1535,7 +1535,7 @@
     "fields": {
       "nombre": "Puerto Pérez",
       "provincia": 53,
-      "codigo": "LP-P053-103"
+      "codigo": "P053M004"
     }
   },
   {
@@ -1544,7 +1544,7 @@
     "fields": {
       "nombre": "Sica Sica",
       "provincia": 54,
-      "codigo": "LP-P054-100"
+      "codigo": "P054M001"
     }
   },
   {
@@ -1553,7 +1553,7 @@
     "fields": {
       "nombre": "Umala",
       "provincia": 54,
-      "codigo": "LP-P054-101"
+      "codigo": "P054M002"
     }
   },
   {
@@ -1562,7 +1562,7 @@
     "fields": {
       "nombre": "Ayo Ayo",
       "provincia": 54,
-      "codigo": "LP-P054-102"
+      "codigo": "P054M003"
     }
   },
   {
@@ -1571,7 +1571,7 @@
     "fields": {
       "nombre": "Calamarca",
       "provincia": 54,
-      "codigo": "LP-P054-103"
+      "codigo": "P054M004"
     }
   },
   {
@@ -1580,7 +1580,7 @@
     "fields": {
       "nombre": "Patacamaya",
       "provincia": 54,
-      "codigo": "LP-P054-104"
+      "codigo": "P054M005"
     }
   },
   {
@@ -1589,7 +1589,7 @@
     "fields": {
       "nombre": "Colquencha",
       "provincia": 54,
-      "codigo": "LP-P054-105"
+      "codigo": "P054M006"
     }
   },
   {
@@ -1598,7 +1598,7 @@
     "fields": {
       "nombre": "Collana",
       "provincia": 54,
-      "codigo": "LP-P054-106"
+      "codigo": "P054M007"
     }
   },
   {
@@ -1607,7 +1607,7 @@
     "fields": {
       "nombre": "Santiago de Machaca",
       "provincia": 55,
-      "codigo": "LP-P055-100"
+      "codigo": "P055M001"
     }
   },
   {
@@ -1616,7 +1616,7 @@
     "fields": {
       "nombre": "Catacora",
       "provincia": 55,
-      "codigo": "LP-P055-101"
+      "codigo": "P055M002"
     }
   },
   {
@@ -1625,7 +1625,7 @@
     "fields": {
       "nombre": "Caranavi",
       "provincia": 56,
-      "codigo": "LP-P056-100"
+      "codigo": "P056M001"
     }
   },
   {
@@ -1634,7 +1634,7 @@
     "fields": {
       "nombre": "Alto Beni",
       "provincia": 56,
-      "codigo": "LP-P056-101"
+      "codigo": "P056M002"
     }
   },
   {
@@ -1643,7 +1643,7 @@
     "fields": {
       "nombre": "Oruro",
       "provincia": 57,
-      "codigo": "OR-P057-100"
+      "codigo": "P057M001"
     }
   },
   {
@@ -1652,7 +1652,7 @@
     "fields": {
       "nombre": "Caracollo",
       "provincia": 57,
-      "codigo": "OR-P057-101"
+      "codigo": "P057M002"
     }
   },
   {
@@ -1661,7 +1661,7 @@
     "fields": {
       "nombre": "El Choro",
       "provincia": 57,
-      "codigo": "OR-P057-102"
+      "codigo": "P057M003"
     }
   },
   {
@@ -1670,7 +1670,7 @@
     "fields": {
       "nombre": "Paria",
       "provincia": 57,
-      "codigo": "OR-P057-103"
+      "codigo": "P057M004"
     }
   },
   {
@@ -1679,7 +1679,7 @@
     "fields": {
       "nombre": "Huayllamarca",
       "provincia": 58,
-      "codigo": "OR-P058-100"
+      "codigo": "P058M001"
     }
   },
   {
@@ -1688,7 +1688,7 @@
     "fields": {
       "nombre": "Totora",
       "provincia": 59,
-      "codigo": "OR-P059-100"
+      "codigo": "P059M001"
     }
   },
   {
@@ -1697,7 +1697,7 @@
     "fields": {
       "nombre": "Curahuara de Carangas",
       "provincia": 60,
-      "codigo": "OR-P060-100"
+      "codigo": "P060M001"
     }
   },
   {
@@ -1706,7 +1706,7 @@
     "fields": {
       "nombre": "Turco",
       "provincia": 60,
-      "codigo": "OR-P060-101"
+      "codigo": "P060M002"
     }
   },
   {
@@ -1715,7 +1715,7 @@
     "fields": {
       "nombre": "Huachacalla",
       "provincia": 61,
-      "codigo": "OR-P061-100"
+      "codigo": "P061M001"
     }
   },
   {
@@ -1724,7 +1724,7 @@
     "fields": {
       "nombre": "Escara",
       "provincia": 61,
-      "codigo": "OR-P061-101"
+      "codigo": "P061M002"
     }
   },
   {
@@ -1733,7 +1733,7 @@
     "fields": {
       "nombre": "Cruz de Machacamarca",
       "provincia": 61,
-      "codigo": "OR-P061-102"
+      "codigo": "P061M003"
     }
   },
   {
@@ -1742,7 +1742,7 @@
     "fields": {
       "nombre": "Yunguyo de Litoral",
       "provincia": 61,
-      "codigo": "OR-P061-103"
+      "codigo": "P061M004"
     }
   },
   {
@@ -1751,7 +1751,7 @@
     "fields": {
       "nombre": "Esmeralda",
       "provincia": 61,
-      "codigo": "OR-P061-104"
+      "codigo": "P061M005"
     }
   },
   {
@@ -1760,7 +1760,7 @@
     "fields": {
       "nombre": "Huanuni",
       "provincia": 62,
-      "codigo": "OR-P062-100"
+      "codigo": "P062M001"
     }
   },
   {
@@ -1769,7 +1769,7 @@
     "fields": {
       "nombre": "Machacamarca",
       "provincia": 62,
-      "codigo": "OR-P062-101"
+      "codigo": "P062M002"
     }
   },
   {
@@ -1778,7 +1778,7 @@
     "fields": {
       "nombre": "Poopó",
       "provincia": 63,
-      "codigo": "OR-P063-100"
+      "codigo": "P063M001"
     }
   },
   {
@@ -1787,7 +1787,7 @@
     "fields": {
       "nombre": "Pazña",
       "provincia": 63,
-      "codigo": "OR-P063-101"
+      "codigo": "P063M002"
     }
   },
   {
@@ -1796,7 +1796,7 @@
     "fields": {
       "nombre": "Antequera",
       "provincia": 63,
-      "codigo": "OR-P063-102"
+      "codigo": "P063M003"
     }
   },
   {
@@ -1805,7 +1805,7 @@
     "fields": {
       "nombre": "Toledo",
       "provincia": 64,
-      "codigo": "OR-P064-100"
+      "codigo": "P064M001"
     }
   },
   {
@@ -1814,7 +1814,7 @@
     "fields": {
       "nombre": "Eucaliptus",
       "provincia": 65,
-      "codigo": "OR-P065-100"
+      "codigo": "P065M001"
     }
   },
   {
@@ -1823,7 +1823,7 @@
     "fields": {
       "nombre": "Santiago de Andamarca",
       "provincia": 66,
-      "codigo": "OR-P066-100"
+      "codigo": "P066M001"
     }
   },
   {
@@ -1832,7 +1832,7 @@
     "fields": {
       "nombre": "Belén de Andamarca",
       "provincia": 66,
-      "codigo": "OR-P066-101"
+      "codigo": "P066M002"
     }
   },
   {
@@ -1841,7 +1841,7 @@
     "fields": {
       "nombre": "Salinas de Garci Mendoza",
       "provincia": 67,
-      "codigo": "OR-P067-100"
+      "codigo": "P067M001"
     }
   },
   {
@@ -1850,7 +1850,7 @@
     "fields": {
       "nombre": "Pampa Aullagas",
       "provincia": 67,
-      "codigo": "OR-P067-101"
+      "codigo": "P067M002"
     }
   },
   {
@@ -1859,7 +1859,7 @@
     "fields": {
       "nombre": "Corque",
       "provincia": 68,
-      "codigo": "OR-P068-100"
+      "codigo": "P068M001"
     }
   },
   {
@@ -1868,7 +1868,7 @@
     "fields": {
       "nombre": "Choquecota",
       "provincia": 68,
-      "codigo": "OR-P068-101"
+      "codigo": "P068M002"
     }
   },
   {
@@ -1877,7 +1877,7 @@
     "fields": {
       "nombre": "Santiago de Huari",
       "provincia": 69,
-      "codigo": "OR-P069-100"
+      "codigo": "P069M001"
     }
   },
   {
@@ -1886,7 +1886,7 @@
     "fields": {
       "nombre": "Challapata",
       "provincia": 70,
-      "codigo": "OR-P070-100"
+      "codigo": "P070M001"
     }
   },
   {
@@ -1895,7 +1895,7 @@
     "fields": {
       "nombre": "Santuario de Quillacas",
       "provincia": 70,
-      "codigo": "OR-P070-101"
+      "codigo": "P070M002"
     }
   },
   {
@@ -1904,7 +1904,7 @@
     "fields": {
       "nombre": "La Rivera",
       "provincia": 66,
-      "codigo": "OR-P066-102"
+      "codigo": "P066M003"
     }
   },
   {
@@ -1913,7 +1913,7 @@
     "fields": {
       "nombre": "Sabaya",
       "provincia": 68,
-      "codigo": "OR-P068-102"
+      "codigo": "P068M003"
     }
   },
   {
@@ -1922,7 +1922,7 @@
     "fields": {
       "nombre": "Coipasa",
       "provincia": 68,
-      "codigo": "OR-P068-103"
+      "codigo": "P068M004"
     }
   },
   {
@@ -1931,7 +1931,7 @@
     "fields": {
       "nombre": "Chipaya",
       "provincia": 68,
-      "codigo": "OR-P068-104"
+      "codigo": "P068M005"
     }
   },
   {
@@ -1940,7 +1940,7 @@
     "fields": {
       "nombre": "Cobija",
       "provincia": 71,
-      "codigo": "PA-P071-100"
+      "codigo": "P071M001"
     }
   },
   {
@@ -1949,7 +1949,7 @@
     "fields": {
       "nombre": "Porvenir",
       "provincia": 71,
-      "codigo": "PA-P071-101"
+      "codigo": "P071M002"
     }
   },
   {
@@ -1958,7 +1958,7 @@
     "fields": {
       "nombre": "Bolpebra",
       "provincia": 71,
-      "codigo": "PA-P071-102"
+      "codigo": "P071M003"
     }
   },
   {
@@ -1967,7 +1967,7 @@
     "fields": {
       "nombre": "Bella Flor",
       "provincia": 71,
-      "codigo": "PA-P071-103"
+      "codigo": "P071M004"
     }
   },
   {
@@ -1976,7 +1976,7 @@
     "fields": {
       "nombre": "Puerto Rico",
       "provincia": 72,
-      "codigo": "PA-P072-100"
+      "codigo": "P072M001"
     }
   },
   {
@@ -1985,7 +1985,7 @@
     "fields": {
       "nombre": "San Pedro",
       "provincia": 72,
-      "codigo": "PA-P072-101"
+      "codigo": "P072M002"
     }
   },
   {
@@ -1994,7 +1994,7 @@
     "fields": {
       "nombre": "Filadelfia",
       "provincia": 72,
-      "codigo": "PA-P072-102"
+      "codigo": "P072M003"
     }
   },
   {
@@ -2003,7 +2003,7 @@
     "fields": {
       "nombre": "Puerto Gonzalo Moreno",
       "provincia": 73,
-      "codigo": "PA-P073-100"
+      "codigo": "P073M001"
     }
   },
   {
@@ -2012,7 +2012,7 @@
     "fields": {
       "nombre": "San Lorenzo",
       "provincia": 73,
-      "codigo": "PA-P073-101"
+      "codigo": "P073M002"
     }
   },
   {
@@ -2021,7 +2021,7 @@
     "fields": {
       "nombre": "Sena",
       "provincia": 73,
-      "codigo": "PA-P073-102"
+      "codigo": "P073M003"
     }
   },
   {
@@ -2030,7 +2030,7 @@
     "fields": {
       "nombre": "Santa Rosa del Abuná",
       "provincia": 74,
-      "codigo": "PA-P074-100"
+      "codigo": "P074M001"
     }
   },
   {
@@ -2039,7 +2039,7 @@
     "fields": {
       "nombre": "Ingavi",
       "provincia": 74,
-      "codigo": "PA-P074-101"
+      "codigo": "P074M002"
     }
   },
   {
@@ -2048,7 +2048,7 @@
     "fields": {
       "nombre": "Nueva Esperanza",
       "provincia": 75,
-      "codigo": "PA-P075-100"
+      "codigo": "P075M001"
     }
   },
   {
@@ -2057,7 +2057,7 @@
     "fields": {
       "nombre": "Villa Nueva",
       "provincia": 75,
-      "codigo": "PA-P075-101"
+      "codigo": "P075M002"
     }
   },
   {
@@ -2066,7 +2066,7 @@
     "fields": {
       "nombre": "Santos Mercado",
       "provincia": 75,
-      "codigo": "PA-P075-102"
+      "codigo": "P075M003"
     }
   },
   {
@@ -2075,7 +2075,7 @@
     "fields": {
       "nombre": "Potosí",
       "provincia": 76,
-      "codigo": "PT-P076-100"
+      "codigo": "P076M001"
     }
   },
   {
@@ -2084,7 +2084,7 @@
     "fields": {
       "nombre": "Tinguipaya",
       "provincia": 76,
-      "codigo": "PT-P076-101"
+      "codigo": "P076M002"
     }
   },
   {
@@ -2093,7 +2093,7 @@
     "fields": {
       "nombre": "Yocalla",
       "provincia": 76,
-      "codigo": "PT-P076-102"
+      "codigo": "P076M003"
     }
   },
   {
@@ -2102,7 +2102,7 @@
     "fields": {
       "nombre": "Urmiri",
       "provincia": 76,
-      "codigo": "PT-P076-103"
+      "codigo": "P076M004"
     }
   },
   {
@@ -2111,7 +2111,7 @@
     "fields": {
       "nombre": "Uncía",
       "provincia": 77,
-      "codigo": "PT-P077-100"
+      "codigo": "P077M001"
     }
   },
   {
@@ -2120,7 +2120,7 @@
     "fields": {
       "nombre": "Chayanta",
       "provincia": 77,
-      "codigo": "PT-P077-101"
+      "codigo": "P077M002"
     }
   },
   {
@@ -2129,7 +2129,7 @@
     "fields": {
       "nombre": "Llallagua",
       "provincia": 77,
-      "codigo": "PT-P077-102"
+      "codigo": "P077M003"
     }
   },
   {
@@ -2138,7 +2138,7 @@
     "fields": {
       "nombre": "Chuquihuta",
       "provincia": 77,
-      "codigo": "PT-P077-103"
+      "codigo": "P077M004"
     }
   },
   {
@@ -2147,7 +2147,7 @@
     "fields": {
       "nombre": "Betanzos",
       "provincia": 78,
-      "codigo": "PT-P078-100"
+      "codigo": "P078M001"
     }
   },
   {
@@ -2156,7 +2156,7 @@
     "fields": {
       "nombre": "Chaquí",
       "provincia": 78,
-      "codigo": "PT-P078-101"
+      "codigo": "P078M002"
     }
   },
   {
@@ -2165,7 +2165,7 @@
     "fields": {
       "nombre": "Tacobamba",
       "provincia": 78,
-      "codigo": "PT-P078-102"
+      "codigo": "P078M003"
     }
   },
   {
@@ -2174,7 +2174,7 @@
     "fields": {
       "nombre": "Colquechaca",
       "provincia": 79,
-      "codigo": "PT-P079-100"
+      "codigo": "P079M001"
     }
   },
   {
@@ -2183,7 +2183,7 @@
     "fields": {
       "nombre": "Ravelo",
       "provincia": 79,
-      "codigo": "PT-P079-101"
+      "codigo": "P079M002"
     }
   },
   {
@@ -2192,7 +2192,7 @@
     "fields": {
       "nombre": "Pocoata",
       "provincia": 79,
-      "codigo": "PT-P079-102"
+      "codigo": "P079M003"
     }
   },
   {
@@ -2201,7 +2201,7 @@
     "fields": {
       "nombre": "Ocurí",
       "provincia": 79,
-      "codigo": "PT-P079-103"
+      "codigo": "P079M004"
     }
   },
   {
@@ -2210,7 +2210,7 @@
     "fields": {
       "nombre": "San Pedro de Macha",
       "provincia": 79,
-      "codigo": "PT-P079-104"
+      "codigo": "P079M005"
     }
   },
   {
@@ -2219,7 +2219,7 @@
     "fields": {
       "nombre": "San Pedro de Buena Vista",
       "provincia": 80,
-      "codigo": "PT-P080-100"
+      "codigo": "P080M001"
     }
   },
   {
@@ -2228,7 +2228,7 @@
     "fields": {
       "nombre": "Toro Toro",
       "provincia": 80,
-      "codigo": "PT-P080-101"
+      "codigo": "P080M002"
     }
   },
   {
@@ -2237,7 +2237,7 @@
     "fields": {
       "nombre": "Santiago de Cotagaita",
       "provincia": 81,
-      "codigo": "PT-P081-100"
+      "codigo": "P081M001"
     }
   },
   {
@@ -2246,7 +2246,7 @@
     "fields": {
       "nombre": "Vitichi",
       "provincia": 81,
-      "codigo": "PT-P081-101"
+      "codigo": "P081M002"
     }
   },
   {
@@ -2255,7 +2255,7 @@
     "fields": {
       "nombre": "Sacaca",
       "provincia": 82,
-      "codigo": "PT-P082-100"
+      "codigo": "P082M001"
     }
   },
   {
@@ -2264,7 +2264,7 @@
     "fields": {
       "nombre": "Caripuyo",
       "provincia": 82,
-      "codigo": "PT-P082-101"
+      "codigo": "P082M002"
     }
   },
   {
@@ -2273,7 +2273,7 @@
     "fields": {
       "nombre": "Tupiza",
       "provincia": 83,
-      "codigo": "PT-P083-100"
+      "codigo": "P083M001"
     }
   },
   {
@@ -2282,7 +2282,7 @@
     "fields": {
       "nombre": "Atocha",
       "provincia": 83,
-      "codigo": "PT-P083-101"
+      "codigo": "P083M002"
     }
   },
   {
@@ -2291,7 +2291,7 @@
     "fields": {
       "nombre": "Puna",
       "provincia": 84,
-      "codigo": "PT-P084-100"
+      "codigo": "P084M001"
     }
   },
   {
@@ -2300,7 +2300,7 @@
     "fields": {
       "nombre": "Caiza D",
       "provincia": 84,
-      "codigo": "PT-P084-101"
+      "codigo": "P084M002"
     }
   },
   {
@@ -2309,7 +2309,7 @@
     "fields": {
       "nombre": "Ckochas",
       "provincia": 84,
-      "codigo": "PT-P084-102"
+      "codigo": "P084M003"
     }
   },
   {
@@ -2318,7 +2318,7 @@
     "fields": {
       "nombre": "Villazón",
       "provincia": 85,
-      "codigo": "PT-P085-100"
+      "codigo": "P085M001"
     }
   },
   {
@@ -2327,7 +2327,7 @@
     "fields": {
       "nombre": "Uyuni",
       "provincia": 86,
-      "codigo": "PT-P086-100"
+      "codigo": "P086M001"
     }
   },
   {
@@ -2336,7 +2336,7 @@
     "fields": {
       "nombre": "Tomave",
       "provincia": 86,
-      "codigo": "PT-P086-101"
+      "codigo": "P086M002"
     }
   },
   {
@@ -2345,7 +2345,7 @@
     "fields": {
       "nombre": "Porco",
       "provincia": 86,
-      "codigo": "PT-P086-102"
+      "codigo": "P086M003"
     }
   },
   {
@@ -2354,7 +2354,7 @@
     "fields": {
       "nombre": "Arampampa",
       "provincia": 87,
-      "codigo": "PT-P087-100"
+      "codigo": "P087M001"
     }
   },
   {
@@ -2363,7 +2363,7 @@
     "fields": {
       "nombre": "Acasio",
       "provincia": 87,
-      "codigo": "PT-P087-101"
+      "codigo": "P087M002"
     }
   },
   {
@@ -2372,7 +2372,7 @@
     "fields": {
       "nombre": "Llica",
       "provincia": 88,
-      "codigo": "PT-P088-100"
+      "codigo": "P088M001"
     }
   },
   {
@@ -2381,7 +2381,7 @@
     "fields": {
       "nombre": "Tahua",
       "provincia": 88,
-      "codigo": "PT-P088-101"
+      "codigo": "P088M002"
     }
   },
   {
@@ -2390,7 +2390,7 @@
     "fields": {
       "nombre": "Colcha K",
       "provincia": 89,
-      "codigo": "PT-P089-100"
+      "codigo": "P089M001"
     }
   },
   {
@@ -2399,7 +2399,7 @@
     "fields": {
       "nombre": "San Pedro de Quemes",
       "provincia": 89,
-      "codigo": "PT-P089-101"
+      "codigo": "P089M002"
     }
   },
   {
@@ -2408,7 +2408,7 @@
     "fields": {
       "nombre": "San Pablo de Lípez",
       "provincia": 90,
-      "codigo": "PT-P090-100"
+      "codigo": "P090M001"
     }
   },
   {
@@ -2417,7 +2417,7 @@
     "fields": {
       "nombre": "Mojinete",
       "provincia": 90,
-      "codigo": "PT-P090-101"
+      "codigo": "P090M002"
     }
   },
   {
@@ -2426,7 +2426,7 @@
     "fields": {
       "nombre": "San Antonio de Esmoruco",
       "provincia": 90,
-      "codigo": "PT-P090-102"
+      "codigo": "P090M003"
     }
   },
   {
@@ -2435,7 +2435,7 @@
     "fields": {
       "nombre": "San Agustín",
       "provincia": 91,
-      "codigo": "PT-P091-100"
+      "codigo": "P091M001"
     }
   },
   {
@@ -2444,7 +2444,7 @@
     "fields": {
       "nombre": "Santa Cruz de la Sierra",
       "provincia": 92,
-      "codigo": "SC-P092-100"
+      "codigo": "P092M001"
     }
   },
   {
@@ -2453,7 +2453,7 @@
     "fields": {
       "nombre": "Cotoca",
       "provincia": 92,
-      "codigo": "SC-P092-101"
+      "codigo": "P092M002"
     }
   },
   {
@@ -2462,7 +2462,7 @@
     "fields": {
       "nombre": "Porongo",
       "provincia": 92,
-      "codigo": "SC-P092-102"
+      "codigo": "P092M003"
     }
   },
   {
@@ -2471,7 +2471,7 @@
     "fields": {
       "nombre": "La Guardia",
       "provincia": 92,
-      "codigo": "SC-P092-103"
+      "codigo": "P092M004"
     }
   },
   {
@@ -2480,7 +2480,7 @@
     "fields": {
       "nombre": "El Torno",
       "provincia": 92,
-      "codigo": "SC-P092-104"
+      "codigo": "P092M005"
     }
   },
   {
@@ -2489,7 +2489,7 @@
     "fields": {
       "nombre": "Warnes",
       "provincia": 93,
-      "codigo": "SC-P093-100"
+      "codigo": "P093M001"
     }
   },
   {
@@ -2498,7 +2498,7 @@
     "fields": {
       "nombre": "Okinawa Uno",
       "provincia": 93,
-      "codigo": "SC-P093-101"
+      "codigo": "P093M002"
     }
   },
   {
@@ -2507,7 +2507,7 @@
     "fields": {
       "nombre": "Buena Vista",
       "provincia": 94,
-      "codigo": "SC-P094-100"
+      "codigo": "P094M001"
     }
   },
   {
@@ -2516,7 +2516,7 @@
     "fields": {
       "nombre": "San Carlos",
       "provincia": 94,
-      "codigo": "SC-P094-101"
+      "codigo": "P094M002"
     }
   },
   {
@@ -2525,7 +2525,7 @@
     "fields": {
       "nombre": "Villa Yapacaní",
       "provincia": 94,
-      "codigo": "SC-P094-102"
+      "codigo": "P094M003"
     }
   },
   {
@@ -2534,7 +2534,7 @@
     "fields": {
       "nombre": "San Juan de Yapacaní",
       "provincia": 94,
-      "codigo": "SC-P094-103"
+      "codigo": "P094M004"
     }
   },
   {
@@ -2543,7 +2543,7 @@
     "fields": {
       "nombre": "Portachuelo",
       "provincia": 95,
-      "codigo": "SC-P095-100"
+      "codigo": "P095M001"
     }
   },
   {
@@ -2552,7 +2552,7 @@
     "fields": {
       "nombre": "Santa Rosa del Sara",
       "provincia": 95,
-      "codigo": "SC-P095-101"
+      "codigo": "P095M002"
     }
   },
   {
@@ -2561,7 +2561,7 @@
     "fields": {
       "nombre": "Colpa Bélgica",
       "provincia": 95,
-      "codigo": "SC-P095-102"
+      "codigo": "P095M003"
     }
   },
   {
@@ -2570,7 +2570,7 @@
     "fields": {
       "nombre": "Lagunillas",
       "provincia": 96,
-      "codigo": "SC-P096-100"
+      "codigo": "P096M001"
     }
   },
   {
@@ -2579,7 +2579,7 @@
     "fields": {
       "nombre": "Charagua",
       "provincia": 96,
-      "codigo": "SC-P096-101"
+      "codigo": "P096M002"
     }
   },
   {
@@ -2588,7 +2588,7 @@
     "fields": {
       "nombre": "Cabezas",
       "provincia": 96,
-      "codigo": "SC-P096-102"
+      "codigo": "P096M003"
     }
   },
   {
@@ -2597,7 +2597,7 @@
     "fields": {
       "nombre": "Cuevo",
       "provincia": 96,
-      "codigo": "SC-P096-103"
+      "codigo": "P096M004"
     }
   },
   {
@@ -2606,7 +2606,7 @@
     "fields": {
       "nombre": "Gutiérrez",
       "provincia": 96,
-      "codigo": "SC-P096-104"
+      "codigo": "P096M005"
     }
   },
   {
@@ -2615,7 +2615,7 @@
     "fields": {
       "nombre": "Camiri",
       "provincia": 96,
-      "codigo": "SC-P096-105"
+      "codigo": "P096M006"
     }
   },
   {
@@ -2624,7 +2624,7 @@
     "fields": {
       "nombre": "Boyuibe",
       "provincia": 96,
-      "codigo": "SC-P096-106"
+      "codigo": "P096M007"
     }
   },
   {
@@ -2633,7 +2633,7 @@
     "fields": {
       "nombre": "Vallegrande",
       "provincia": 97,
-      "codigo": "SC-P097-100"
+      "codigo": "P097M001"
     }
   },
   {
@@ -2642,7 +2642,7 @@
     "fields": {
       "nombre": "El Trigal",
       "provincia": 97,
-      "codigo": "SC-P097-101"
+      "codigo": "P097M002"
     }
   },
   {
@@ -2651,7 +2651,7 @@
     "fields": {
       "nombre": "Moro Moro",
       "provincia": 97,
-      "codigo": "SC-P097-102"
+      "codigo": "P097M003"
     }
   },
   {
@@ -2660,7 +2660,7 @@
     "fields": {
       "nombre": "Postrervalle",
       "provincia": 97,
-      "codigo": "SC-P097-103"
+      "codigo": "P097M004"
     }
   },
   {
@@ -2669,7 +2669,7 @@
     "fields": {
       "nombre": "Pucará",
       "provincia": 97,
-      "codigo": "SC-P097-104"
+      "codigo": "P097M005"
     }
   },
   {
@@ -2678,7 +2678,7 @@
     "fields": {
       "nombre": "Samaipata",
       "provincia": 98,
-      "codigo": "SC-P098-100"
+      "codigo": "P098M001"
     }
   },
   {
@@ -2687,7 +2687,7 @@
     "fields": {
       "nombre": "Pampagrande",
       "provincia": 98,
-      "codigo": "SC-P098-101"
+      "codigo": "P098M002"
     }
   },
   {
@@ -2696,7 +2696,7 @@
     "fields": {
       "nombre": "Mairana",
       "provincia": 98,
-      "codigo": "SC-P098-102"
+      "codigo": "P098M003"
     }
   },
   {
@@ -2705,7 +2705,7 @@
     "fields": {
       "nombre": "Quirusillas",
       "provincia": 98,
-      "codigo": "SC-P098-103"
+      "codigo": "P098M004"
     }
   },
   {
@@ -2714,7 +2714,7 @@
     "fields": {
       "nombre": "Montero",
       "provincia": 99,
-      "codigo": "SC-P099-100"
+      "codigo": "P099M001"
     }
   },
   {
@@ -2723,7 +2723,7 @@
     "fields": {
       "nombre": "General Saavedra",
       "provincia": 99,
-      "codigo": "SC-P099-101"
+      "codigo": "P099M002"
     }
   },
   {
@@ -2732,7 +2732,7 @@
     "fields": {
       "nombre": "Mineros",
       "provincia": 99,
-      "codigo": "SC-P099-102"
+      "codigo": "P099M003"
     }
   },
   {
@@ -2741,7 +2741,7 @@
     "fields": {
       "nombre": "Fernández Alonso",
       "provincia": 99,
-      "codigo": "SC-P099-103"
+      "codigo": "P099M004"
     }
   },
   {
@@ -2750,7 +2750,7 @@
     "fields": {
       "nombre": "San Pedro",
       "provincia": 99,
-      "codigo": "SC-P099-104"
+      "codigo": "P099M005"
     }
   },
   {
@@ -2759,7 +2759,7 @@
     "fields": {
       "nombre": "Concepción",
       "provincia": 100,
-      "codigo": "SC-P100-100"
+      "codigo": "P100M001"
     }
   },
   {
@@ -2768,7 +2768,7 @@
     "fields": {
       "nombre": "San Javier",
       "provincia": 100,
-      "codigo": "SC-P100-101"
+      "codigo": "P100M002"
     }
   },
   {
@@ -2777,7 +2777,7 @@
     "fields": {
       "nombre": "San Ramón",
       "provincia": 100,
-      "codigo": "SC-P100-102"
+      "codigo": "P100M003"
     }
   },
   {
@@ -2786,7 +2786,7 @@
     "fields": {
       "nombre": "San Julián",
       "provincia": 100,
-      "codigo": "SC-P100-103"
+      "codigo": "P100M004"
     }
   },
   {
@@ -2795,7 +2795,7 @@
     "fields": {
       "nombre": "San Antonio de Lomerío",
       "provincia": 100,
-      "codigo": "SC-P100-104"
+      "codigo": "P100M005"
     }
   },
   {
@@ -2804,7 +2804,7 @@
     "fields": {
       "nombre": "Cuatro Cañadas",
       "provincia": 100,
-      "codigo": "SC-P100-105"
+      "codigo": "P100M006"
     }
   },
   {
@@ -2813,7 +2813,7 @@
     "fields": {
       "nombre": "San Ignacio de Velasco",
       "provincia": 101,
-      "codigo": "SC-P101-100"
+      "codigo": "P101M001"
     }
   },
   {
@@ -2822,7 +2822,7 @@
     "fields": {
       "nombre": "San Miguel de Velasco",
       "provincia": 101,
-      "codigo": "SC-P101-101"
+      "codigo": "P101M002"
     }
   },
   {
@@ -2831,7 +2831,7 @@
     "fields": {
       "nombre": "San Rafael de Velasco",
       "provincia": 101,
-      "codigo": "SC-P101-102"
+      "codigo": "P101M003"
     }
   },
   {
@@ -2840,7 +2840,7 @@
     "fields": {
       "nombre": "Puerto Suárez",
       "provincia": 102,
-      "codigo": "SC-P102-100"
+      "codigo": "P102M001"
     }
   },
   {
@@ -2849,7 +2849,7 @@
     "fields": {
       "nombre": "Puerto Quijarro",
       "provincia": 102,
-      "codigo": "SC-P102-101"
+      "codigo": "P102M002"
     }
   },
   {
@@ -2858,7 +2858,7 @@
     "fields": {
       "nombre": "El Carmen Rivero Tórrez",
       "provincia": 102,
-      "codigo": "SC-P102-102"
+      "codigo": "P102M003"
     }
   },
   {
@@ -2867,7 +2867,7 @@
     "fields": {
       "nombre": "San José de Chiquitos",
       "provincia": 103,
-      "codigo": "SC-P103-100"
+      "codigo": "P103M001"
     }
   },
   {
@@ -2876,7 +2876,7 @@
     "fields": {
       "nombre": "Pailón",
       "provincia": 103,
-      "codigo": "SC-P103-101"
+      "codigo": "P103M002"
     }
   },
   {
@@ -2885,7 +2885,7 @@
     "fields": {
       "nombre": "Roboré",
       "provincia": 103,
-      "codigo": "SC-P103-102"
+      "codigo": "P103M003"
     }
   },
   {
@@ -2894,7 +2894,7 @@
     "fields": {
       "nombre": "San Matías",
       "provincia": 104,
-      "codigo": "SC-P104-100"
+      "codigo": "P104M001"
     }
   },
   {
@@ -2903,7 +2903,7 @@
     "fields": {
       "nombre": "Ascensión de Guarayos",
       "provincia": 105,
-      "codigo": "SC-P105-100"
+      "codigo": "P105M001"
     }
   },
   {
@@ -2912,7 +2912,7 @@
     "fields": {
       "nombre": "Urubichá",
       "provincia": 105,
-      "codigo": "SC-P105-101"
+      "codigo": "P105M002"
     }
   },
   {
@@ -2921,7 +2921,7 @@
     "fields": {
       "nombre": "El Puente",
       "provincia": 105,
-      "codigo": "SC-P105-102"
+      "codigo": "P105M003"
     }
   },
   {
@@ -2930,7 +2930,7 @@
     "fields": {
       "nombre": "Comarapa",
       "provincia": 104,
-      "codigo": "SC-P104-101"
+      "codigo": "P104M002"
     }
   },
   {
@@ -2939,7 +2939,7 @@
     "fields": {
       "nombre": "Saipina",
       "provincia": 104,
-      "codigo": "SC-P104-102"
+      "codigo": "P104M003"
     }
   },
   {
@@ -2948,7 +2948,7 @@
     "fields": {
       "nombre": "Tarija",
       "provincia": 106,
-      "codigo": "TJ-P106-100"
+      "codigo": "P106M001"
     }
   },
   {
@@ -2957,7 +2957,7 @@
     "fields": {
       "nombre": "Uriondo",
       "provincia": 107,
-      "codigo": "TJ-P107-100"
+      "codigo": "P107M001"
     }
   },
   {
@@ -2966,7 +2966,7 @@
     "fields": {
       "nombre": "Yunchará",
       "provincia": 107,
-      "codigo": "TJ-P107-101"
+      "codigo": "P107M002"
     }
   },
   {
@@ -2975,7 +2975,7 @@
     "fields": {
       "nombre": "San Lorenzo",
       "provincia": 108,
-      "codigo": "TJ-P108-100"
+      "codigo": "P108M001"
     }
   },
   {
@@ -2984,7 +2984,7 @@
     "fields": {
       "nombre": "El Puente",
       "provincia": 108,
-      "codigo": "TJ-P108-101"
+      "codigo": "P108M002"
     }
   },
   {
@@ -2993,7 +2993,7 @@
     "fields": {
       "nombre": "Padcaya",
       "provincia": 109,
-      "codigo": "TJ-P109-100"
+      "codigo": "P109M001"
     }
   },
   {
@@ -3002,7 +3002,7 @@
     "fields": {
       "nombre": "Bermejo",
       "provincia": 109,
-      "codigo": "TJ-P109-101"
+      "codigo": "P109M002"
     }
   },
   {
@@ -3011,7 +3011,7 @@
     "fields": {
       "nombre": "Yacuiba",
       "provincia": 110,
-      "codigo": "TJ-P110-100"
+      "codigo": "P110M001"
     }
   },
   {
@@ -3020,7 +3020,7 @@
     "fields": {
       "nombre": "Caraparí",
       "provincia": 110,
-      "codigo": "TJ-P110-101"
+      "codigo": "P110M002"
     }
   },
   {
@@ -3029,7 +3029,7 @@
     "fields": {
       "nombre": "Villa Montes",
       "provincia": 110,
-      "codigo": "TJ-P110-102"
+      "codigo": "P110M003"
     }
   },
   {
@@ -3038,7 +3038,7 @@
     "fields": {
       "nombre": "Entre Ríos",
       "provincia": 111,
-      "codigo": "TJ-P111-100"
+      "codigo": "P111M001"
     }
   }
 ]
