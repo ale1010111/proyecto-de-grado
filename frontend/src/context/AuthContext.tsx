@@ -43,8 +43,13 @@ interface AuthContextType {
 // AXIOS CONFIG
 // ------------------------------------------------
 
+// URL base del backend
+// En producción se inyecta vía VITE_API_URL (Vercel)
+// En desarrollo local se usa el fallback a 127.0.0.1:8000
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 export const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: API_URL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
@@ -85,7 +90,7 @@ api.interceptors.response.use(
       original._retry = true;
       try {
         await axios.post(
-          "http://127.0.0.1:8000/api/users/auth/refresh/",
+          `${API_URL}/api/users/auth/refresh/`,
           {},
           { withCredentials: true }
         );
@@ -136,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     //    para evitar que el interceptor interfiera
     try {
       await axios.post(
-        "http://127.0.0.1:8000/api/users/auth/logout/",
+        `${API_URL}/api/users/auth/logout/`,
         {},
         { withCredentials: true }
       );
@@ -160,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await axios.post(
-        "http://127.0.0.1:8000/api/users/auth/logout/",
+        `${API_URL}/api/users/auth/logout/`,
         {},
         { withCredentials: true }
       );
