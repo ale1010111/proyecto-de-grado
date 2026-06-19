@@ -1,42 +1,6 @@
 [
   {
     "model": "catalogos.municipio",
-    "pk": 1000,
-    "fields": {
-      "nombre": "Trinidad",
-      "provincia": 1,
-      "codigo": "P001M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1001,
-    "fields": {
-      "nombre": "San Javier",
-      "provincia": 1,
-      "codigo": "P001M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1002,
-    "fields": {
-      "nombre": "Riberalta",
-      "provincia": 2,
-      "codigo": "P002M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1003,
-    "fields": {
-      "nombre": "Guayaramerín",
-      "provincia": 2,
-      "codigo": "P002M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1004,
     "fields": {
       "nombre": "Loreto",
@@ -168,33 +132,6 @@
       "nombre": "Exaltación",
       "provincia": 8,
       "codigo": "P008M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1019,
-    "fields": {
-      "nombre": "Sucre",
-      "provincia": 9,
-      "codigo": "P009M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1020,
-    "fields": {
-      "nombre": "Yotala",
-      "provincia": 9,
-      "codigo": "P009M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1021,
-    "fields": {
-      "nombre": "Poroma",
-      "provincia": 9,
-      "codigo": "P009M003"
     }
   },
   {
@@ -334,15 +271,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1037,
-    "fields": {
-      "nombre": "Camargo",
-      "provincia": 15,
-      "codigo": "P015M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1038,
     "fields": {
       "nombre": "San Lucas",
@@ -420,24 +348,6 @@
       "nombre": "Macharetí",
       "provincia": 17,
       "codigo": "P017M003"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1047,
-    "fields": {
-      "nombre": "Villa Serrano",
-      "provincia": 18,
-      "codigo": "P018M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1048,
-    "fields": {
-      "nombre": "Cochabamba",
-      "provincia": 19,
-      "codigo": "P019M001"
     }
   },
   {
@@ -559,42 +469,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1062,
-    "fields": {
-      "nombre": "Quillacollo",
-      "provincia": 26,
-      "codigo": "P026M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1063,
-    "fields": {
-      "nombre": "Sipe Sipe",
-      "provincia": 26,
-      "codigo": "P026M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1064,
-    "fields": {
-      "nombre": "Tiquipaya",
-      "provincia": 26,
-      "codigo": "P026M003"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1065,
-    "fields": {
-      "nombre": "Vinto",
-      "provincia": 26,
-      "codigo": "P026M004"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1066,
     "fields": {
       "nombre": "Colcapirhua",
@@ -618,15 +492,6 @@
       "nombre": "Colomi",
       "provincia": 27,
       "codigo": "P027M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1069,
-    "fields": {
-      "nombre": "Villa Tunari",
-      "provincia": 27,
-      "codigo": "P027M003"
     }
   },
   {
@@ -775,15 +640,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1086,
-    "fields": {
-      "nombre": "Punata",
-      "provincia": 34,
-      "codigo": "P034M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1087,
     "fields": {
       "nombre": "Villa Rivero",
@@ -852,60 +708,6 @@
       "nombre": "Sacabamba",
       "provincia": 21,
       "codigo": "P021M004"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1095,
-    "fields": {
-      "nombre": "La Paz",
-      "provincia": 37,
-      "codigo": "P037M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1096,
-    "fields": {
-      "nombre": "Palca",
-      "provincia": 37,
-      "codigo": "P037M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1097,
-    "fields": {
-      "nombre": "Mecapaca",
-      "provincia": 37,
-      "codigo": "P037M003"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1098,
-    "fields": {
-      "nombre": "Achocalla",
-      "provincia": 37,
-      "codigo": "P037M004"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1099,
-    "fields": {
-      "nombre": "El Alto",
-      "provincia": 37,
-      "codigo": "P037M005"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1100,
-    "fields": {
-      "nombre": "Achacachi",
-      "provincia": 38,
-      "codigo": "P038M001"
     }
   },
   {
@@ -1189,15 +991,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1132,
-    "fields": {
-      "nombre": "Viacha",
-      "provincia": 44,
-      "codigo": "P044M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1133,
     "fields": {
       "nombre": "Guaqui",
@@ -1450,15 +1243,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1161,
-    "fields": {
-      "nombre": "Copacabana",
-      "provincia": 51,
-      "codigo": "P051M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1162,
     "fields": {
       "nombre": "San Pedro de Tiquina",
@@ -1621,15 +1405,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1180,
-    "fields": {
-      "nombre": "Caranavi",
-      "provincia": 56,
-      "codigo": "P056M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1181,
     "fields": {
       "nombre": "Alto Beni",
@@ -1639,29 +1414,11 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1182,
-    "fields": {
-      "nombre": "Oruro",
-      "provincia": 57,
-      "codigo": "P057M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1183,
     "fields": {
       "nombre": "Caracollo",
       "provincia": 57,
       "codigo": "P057M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1184,
-    "fields": {
-      "nombre": "El Choro",
-      "provincia": 57,
-      "codigo": "P057M003"
     }
   },
   {
@@ -1936,24 +1693,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1215,
-    "fields": {
-      "nombre": "Cobija",
-      "provincia": 71,
-      "codigo": "P071M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1216,
-    "fields": {
-      "nombre": "Porvenir",
-      "provincia": 71,
-      "codigo": "P071M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1217,
     "fields": {
       "nombre": "Bolpebra",
@@ -2071,38 +1810,11 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1230,
-    "fields": {
-      "nombre": "Potosí",
-      "provincia": 76,
-      "codigo": "P076M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1231,
     "fields": {
       "nombre": "Tinguipaya",
       "provincia": 76,
       "codigo": "P076M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1232,
-    "fields": {
-      "nombre": "Yocalla",
-      "provincia": 76,
-      "codigo": "P076M003"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1233,
-    "fields": {
-      "nombre": "Urmiri",
-      "provincia": 76,
-      "codigo": "P076M004"
     }
   },
   {
@@ -2121,15 +1833,6 @@
       "nombre": "Chayanta",
       "provincia": 77,
       "codigo": "P077M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1236,
-    "fields": {
-      "nombre": "Llallagua",
-      "provincia": 77,
-      "codigo": "P077M003"
     }
   },
   {
@@ -2269,15 +1972,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1252,
-    "fields": {
-      "nombre": "Tupiza",
-      "provincia": 83,
-      "codigo": "P083M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1253,
     "fields": {
       "nombre": "Atocha",
@@ -2310,15 +2004,6 @@
       "nombre": "Ckochas",
       "provincia": 84,
       "codigo": "P084M003"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1257,
-    "fields": {
-      "nombre": "Villazón",
-      "provincia": 85,
-      "codigo": "P085M001"
     }
   },
   {
@@ -2449,42 +2134,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1272,
-    "fields": {
-      "nombre": "Cotoca",
-      "provincia": 92,
-      "codigo": "P092M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1273,
-    "fields": {
-      "nombre": "Porongo",
-      "provincia": 92,
-      "codigo": "P092M003"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1274,
-    "fields": {
-      "nombre": "La Guardia",
-      "provincia": 92,
-      "codigo": "P092M004"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1275,
-    "fields": {
-      "nombre": "El Torno",
-      "provincia": 92,
-      "codigo": "P092M005"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1276,
     "fields": {
       "nombre": "Warnes",
@@ -2611,29 +2260,11 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1290,
-    "fields": {
-      "nombre": "Camiri",
-      "provincia": 96,
-      "codigo": "P096M006"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1291,
     "fields": {
       "nombre": "Boyuibe",
       "provincia": 96,
       "codigo": "P096M007"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1292,
-    "fields": {
-      "nombre": "Vallegrande",
-      "provincia": 97,
-      "codigo": "P097M001"
     }
   },
   {
@@ -2809,15 +2440,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1312,
-    "fields": {
-      "nombre": "San Ignacio de Velasco",
-      "provincia": 101,
-      "codigo": "P101M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1313,
     "fields": {
       "nombre": "San Miguel de Velasco",
@@ -2832,15 +2454,6 @@
       "nombre": "San Rafael de Velasco",
       "provincia": 101,
       "codigo": "P101M003"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1315,
-    "fields": {
-      "nombre": "Puerto Suárez",
-      "provincia": 102,
-      "codigo": "P102M001"
     }
   },
   {
@@ -2944,15 +2557,6 @@
   },
   {
     "model": "catalogos.municipio",
-    "pk": 1327,
-    "fields": {
-      "nombre": "Tarija",
-      "provincia": 106,
-      "codigo": "P106M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
     "pk": 1328,
     "fields": {
       "nombre": "Uriondo",
@@ -2994,24 +2598,6 @@
       "nombre": "Padcaya",
       "provincia": 109,
       "codigo": "P109M001"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1333,
-    "fields": {
-      "nombre": "Bermejo",
-      "provincia": 109,
-      "codigo": "P109M002"
-    }
-  },
-  {
-    "model": "catalogos.municipio",
-    "pk": 1334,
-    "fields": {
-      "nombre": "Yacuiba",
-      "provincia": 110,
-      "codigo": "P110M001"
     }
   },
   {
