@@ -1,6 +1,7 @@
 # apps/users/email_service.py
 
 import logging
+import requests
 
 from django.core.mail import send_mail
 from django.conf import settings
@@ -18,21 +19,71 @@ def _enviar_email(
     destinatario: str,
 ) -> bool:
     """
-    Envía un email y captura errores sin romper
-    el flujo principal de la aplicación.
-    Retorna True si se envió correctamente.
-    """
-    try:
-        send_mail(
-            subject      = asunto,
-            message      = mensaje,
-            from_email   = settings.DEFAULT_FROM_EMAIL,
-            recipient_list = [destinatario],
-            fail_silently  = False,
-        )
-        logger.info(f"Email enviado a {destinatario} — asunto: {asunto}")
-        return True
+    Envía un email y captura errores sin romper el flujo principal.
 
+    Estrategia:
+      - Si BREVO_API_KEY está configurada, usa la API HTTP de Brevo
+        (Railway no bloquea HTTPS saliente).
+      - Si no está configurada, hace fallback a Django send_mail
+        (que en desarrollo escribe a consola).
+
+    Retorna True si el envío fue exitoso.
+    """
+    api_key = getattr(settings, "BREVO_API_KEY", "")
+
+    # Sin API key → fallback a Django send_mail (desarrollo)
+    if not api_key:
+        try:
+            send_mail(
+                subject        = asunto,
+                message        = mensaje,
+                from_email     = settings.DEFAULT_FROM_EMAIL,
+                recipient_list = [destinatario],
+                fail_silently  = False,
+            )
+            logger.info(f"Email enviado a {destinatario} (Django backend)")
+            return True
+        except Exception as e:
+            logger.error(
+                f"Error al enviar email a {destinatario} "
+                f"— asunto: {asunto} — error: {e}"
+            )
+            return False
+
+    # Producción: Brevo HTTP API
+    try:
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers = {
+                "accept":       "application/json",
+                "api-key":      api_key,
+                "content-type": "application/json",
+            },
+            json = {
+                "sender": {
+                    "name":  getattr(settings, "BREVO_SENDER_NAME",  "ANH Bolivia"),
+                    "email": settings.BREVO_SENDER_EMAIL,
+                },
+                "to":          [{"email": destinatario}],
+                "subject":     asunto,
+                "textContent": mensaje,
+            },
+            timeout = 10,
+        )
+
+        if response.status_code == 201:
+            logger.info(f"Email enviado a {destinatario} via Brevo — asunto: {asunto}")
+            return True
+
+        logger.error(
+            f"Brevo API error {response.status_code} "
+            f"al enviar a {destinatario}: {response.text}"
+        )
+        return False
+
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout (10s) al enviar email a {destinatario}")
+        return False
     except Exception as e:
         logger.error(
             f"Error al enviar email a {destinatario} "
@@ -46,10 +97,6 @@ def _enviar_email(
 # ------------------------------------------------
 
 def enviar_pin_verificacion(user, pin: str) -> bool:
-    """
-    Envía el PIN de 6 dígitos para verificar
-    el email al momento del registro.
-    """
     from configuracion.models import ConfiguracionSistema
     config = ConfiguracionSistema.obtener()
 
@@ -80,19 +127,10 @@ Bolivia
 # ------------------------------------------------
 
 def enviar_token_recuperacion(user, token_uuid: str) -> bool:
-    """
-    Envía el enlace con token UUID para
-    recuperar la contraseña.
-    """
     from configuracion.models import ConfiguracionSistema
     config = ConfiguracionSistema.obtener()
 
-    # URL del frontend para recuperar contraseña
-    frontend_url = getattr(
-        settings,
-        "FRONTEND_URL",
-        "http://localhost:5173"
-    )
+    frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:5173")
     enlace = f"{frontend_url}/recuperar-password/confirmar?token={token_uuid}"
 
     asunto  = "Recuperación de contraseña — ANH"
@@ -123,10 +161,6 @@ Bolivia
 # ------------------------------------------------
 
 def enviar_notificacion_solicitud_aprobada(solicitud) -> bool:
-    """
-    Notifica al consumidor que su solicitud
-    fue aprobada por la ANH.
-    """
     user    = solicitud.consumidor.user
     asunto  = "Solicitud aprobada — ANH"
     mensaje = f"""
@@ -157,10 +191,6 @@ Bolivia
 # ------------------------------------------------
 
 def enviar_notificacion_solicitud_observada(solicitud) -> bool:
-    """
-    Notifica al consumidor que su solicitud
-    fue observada y requiere atención.
-    """
     user    = solicitud.consumidor.user
     asunto  = "Solicitud observada — ANH"
     mensaje = f"""
@@ -188,10 +218,6 @@ Bolivia
 # ------------------------------------------------
 
 def enviar_notificacion_solicitud_rechazada(solicitud) -> bool:
-    """
-    Notifica al consumidor que su solicitud
-    fue rechazada por la ANH.
-    """
     user    = solicitud.consumidor.user
     asunto  = "Solicitud rechazada — ANH"
     mensaje = f"""

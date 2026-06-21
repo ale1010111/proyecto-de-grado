@@ -259,6 +259,20 @@ EMAIL_TIMEOUT       = env.int("EMAIL_TIMEOUT",   default=10)
 EMAIL_HOST_USER     = env("EMAIL_HOST_USER",     default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL  = env("DEFAULT_FROM_EMAIL",  default="ANH <noreply@anh.gob.bo>")
+
+# ------------------------------------------------
+# BREVO (servicio HTTP de email)
+# Usado en producción porque Railway bloquea SMTP
+# saliente en el plan Hobby. La API HTTP no se ve
+# afectada por esa restricción.
+# Si BREVO_API_KEY está vacía, email_service.py hace
+# fallback a Django send_mail (consola en desarrollo).
+# ------------------------------------------------
+
+BREVO_API_KEY      = env("BREVO_API_KEY",      default="")
+BREVO_SENDER_EMAIL = env("BREVO_SENDER_EMAIL", default="alejandro71133089@gmail.com")
+BREVO_SENDER_NAME  = env("BREVO_SENDER_NAME",  default="ANH Bolivia")
+
 # ------------------------------------------------
 # FRONTEND URL
 # Usada para construir enlaces en emails
