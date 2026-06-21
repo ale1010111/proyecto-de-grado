@@ -35,30 +35,41 @@ from .serializers import (
 # ------------------------------------------------
 
 def _set_auth_cookies(response, access: str, refresh: str) -> None:
-    secure = not settings.DEBUG  # False en desarrollo, True en producción
+    """
+    Setea las cookies httponly con access y refresh tokens.
+    Lee samesite y secure desde settings.SIMPLE_JWT para que
+    funcione cross-origin en producción (Vercel ↔ Railway).
+    """
+    samesite = settings.SIMPLE_JWT.get("AUTH_COOKIE_SAMESITE", "Lax")
+    secure   = settings.SIMPLE_JWT.get("AUTH_COOKIE_SECURE", not settings.DEBUG)
+
     response.set_cookie(
         key="access_token",
         value=access,
         httponly=True,
         secure=secure,
-        samesite="Lax"    # ← cambiar Strict por Lax para desarrollo
+        samesite=samesite,
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh,
         httponly=True,
         secure=secure,
-        samesite="Lax"
+        samesite=samesite,
     )
 
 
 def _clear_auth_cookies(response) -> None:
     """
     Elimina las cookies de autenticación.
+    Usa los mismos atributos que _set_auth_cookies
+    para garantizar que el navegador las elimine correctamente.
     """
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    samesite = settings.SIMPLE_JWT.get("AUTH_COOKIE_SAMESITE", "Lax")
+    secure   = settings.SIMPLE_JWT.get("AUTH_COOKIE_SECURE", not settings.DEBUG)
 
+    response.delete_cookie("access_token",  samesite=samesite)
+    response.delete_cookie("refresh_token", samesite=samesite)
 
 # ------------------------------------------------
 # REGISTRO DE CONSUMIDOR
