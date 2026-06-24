@@ -61,26 +61,26 @@ export default function ConfirmarRecuperacion() {
     `w-full px-4 py-2.5 rounded-xl border text-sm transition-colors outline-none ${
       hasError
         ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-        : "border-slate-200 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:bg-white"
+        : "border-border bg-input focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card"
     }`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f2744] via-[#1a3a5c] to-[#0f2744] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-navbar via-[#1f2d3d] to-navbar flex items-center justify-center p-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-2xl overflow-hidden">
 
           {/* HEADER */}
-          <div className="bg-[#1a3a5c] px-8 py-8 text-center">
-            <div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Flame className="w-8 h-8 text-[#1a3a5c]" strokeWidth={2.5} />
+          <div className="bg-navbar px-8 py-8 text-center">
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Flame className="w-8 h-8 text-primary-foreground" strokeWidth={2.5} />
             </div>
-            <h1 className="text-white text-2xl font-bold">ANH Bolivia</h1>
-            <p className="text-blue-300 text-sm mt-1">Nueva contraseña</p>
+            <h1 className="text-navbar-foreground text-2xl font-bold">ANH Bolivia</h1>
+            <p className="text-navbar-muted text-sm mt-1">Nueva contraseña</p>
           </div>
 
           <div className="px-8 py-8">
@@ -88,29 +88,29 @@ export default function ConfirmarRecuperacion() {
             {/* ÉXITO */}
             {exito ? (
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 bg-state-success-bg rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle className="w-8 h-8 text-state-success-fg" />
                 </div>
-                <h2 className="text-slate-800 text-xl font-semibold">
+                <h2 className="text-foreground text-xl font-semibold">
                   ¡Contraseña actualizada!
                 </h2>
-                <p className="text-slate-500 text-sm">
+                <p className="text-muted-foreground text-sm">
                   Tu contraseña fue cambiada exitosamente.
                   Serás redirigido al login en unos segundos...
                 </p>
                 <Link
                   to="/login"
-                  className="flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors"
+                  className="flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover transition-colors"
                 >
                   Ir al login
                 </Link>
               </div>
             ) : (
               <>
-                <h2 className="text-slate-800 text-xl font-semibold mb-2 text-center">
+                <h2 className="text-foreground text-xl font-semibold mb-2 text-center">
                   Crea tu nueva contraseña
                 </h2>
-                <p className="text-slate-500 text-sm text-center mb-6">
+                <p className="text-muted-foreground text-sm text-center mb-6">
                   Ingresa y confirma tu nueva contraseña.
                 </p>
 
@@ -132,7 +132,7 @@ export default function ConfirmarRecuperacion() {
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Nueva contraseña
                     </label>
                     <div className="relative">
@@ -141,14 +141,13 @@ export default function ConfirmarRecuperacion() {
                         placeholder="Mínimo 8 caracteres"
                         {...register("password")}
                         className={inputCls(!!errors.password) + " pr-11"}
-                        
                       />
-                      <p className="text-xs text-slate-400 mt-1">{PASSWORD_HELP_TEXT}</p>
-                      
+                      <p className="text-xs text-muted-foreground mt-1">{PASSWORD_HELP_TEXT}</p>
+
                       <button
                         type="button"
                         onClick={() => setShowPass(!showPass)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
                         {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -159,7 +158,7 @@ export default function ConfirmarRecuperacion() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Confirmar contraseña
                     </label>
                     <div className="relative">
@@ -172,7 +171,7 @@ export default function ConfirmarRecuperacion() {
                       <button
                         type="button"
                         onClick={() => setShowPass2(!showPass2)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
                         {showPass2 ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -185,7 +184,7 @@ export default function ConfirmarRecuperacion() {
                   <button
                     type="submit"
                     disabled={loading || !token}
-                    className="w-full flex items-center justify-center gap-2 bg-[#1a3a5c] hover:bg-[#152e4d] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
+                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-slate-300 disabled:cursor-not-allowed text-primary-foreground font-semibold py-2.5 rounded-xl transition-colors text-sm"
                   >
                     {loading
                       ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -195,8 +194,8 @@ export default function ConfirmarRecuperacion() {
                   </button>
                 </form>
 
-                <p className="text-center text-slate-500 text-sm mt-6">
-                  <Link to="/login" className="flex items-center justify-center gap-1.5 text-blue-600 hover:text-blue-800 transition-colors">
+                <p className="text-center text-muted-foreground text-sm mt-6">
+                  <Link to="/login" className="flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Volver al login
                   </Link>

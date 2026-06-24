@@ -1,6 +1,4 @@
-// ------------------------------------------------
 // src/components/ui/Card.tsx
-// ------------------------------------------------
 
 import type { ReactNode } from "react";
 
@@ -9,10 +7,9 @@ interface Props {
   className?: string;
 }
 
-
 export function Card({ children, className = "" }: Props) {
   return (
-    <div className={`bg-white rounded-xl border border-slate-200 shadow-sm ${className}`}>
+    <div className={`bg-card rounded-xl border border-border shadow-sm ${className}`}>
       {children}
     </div>
   );
@@ -20,7 +17,7 @@ export function Card({ children, className = "" }: Props) {
 
 export function CardHeader({ children, className = "" }: Props) {
   return (
-    <div className={`px-6 py-4 border-b border-slate-100 ${className}`}>
+    <div className={`px-6 py-4 border-b border-border ${className}`}>
       {children}
     </div>
   );

@@ -9,14 +9,14 @@ interface Props {
 
 export default function Layout({ children }: Props) {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
-      <footer className="bg-[#1a3a5c] text-blue-300 text-xs text-center py-3">
-  © {new Date().getFullYear()}  Bolivia &nbsp;|&nbsp; Desarrollado por Alejandro Salinas
-</footer>
+      <footer className="bg-navbar text-navbar-muted text-xs text-center py-3">
+        © {new Date().getFullYear()} Bolivia &nbsp;|&nbsp; Desarrollado por Alejandro Salinas
+      </footer>
     </div>
   );
 }

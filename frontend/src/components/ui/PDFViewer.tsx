@@ -35,23 +35,23 @@ export default function PDFViewer({ titulo, onClose, fetchPDF, onDescargar }: PD
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden">
+      <div className="relative bg-card rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden">
 
         {/* HEADER */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50 shrink-0">
-          <h3 className="font-semibold text-slate-700 text-sm">{titulo}</h3>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-background shrink-0">
+          <h3 className="font-semibold text-foreground text-sm">{titulo}</h3>
           <div className="flex items-center gap-2">
             {onDescargar && (
               <button
                 onClick={onDescargar}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1a3a5c] text-white rounded-lg text-xs font-medium hover:bg-[#152e4d] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary-hover transition-colors"
               >
                 <Download className="w-3.5 h-3.5" /> Descargar
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-border transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -59,11 +59,11 @@ export default function PDFViewer({ titulo, onClose, fetchPDF, onDescargar }: PD
         </div>
 
         {/* CONTENIDO */}
-        <div className="flex-1 overflow-hidden bg-slate-200">
+        <div className="flex-1 overflow-hidden bg-border">
           {loading && (
             <div className="flex items-center justify-center h-full gap-3">
-              <Loader className="w-6 h-6 text-blue-600 animate-spin" />
-              <p className="text-slate-500 text-sm">Cargando PDF...</p>
+              <Loader className="w-6 h-6 text-primary animate-spin" />
+              <p className="text-muted-foreground text-sm">Cargando PDF...</p>
             </div>
           )}
           {error && (

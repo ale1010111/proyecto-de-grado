@@ -28,7 +28,8 @@ const ESTADO_COLORS: Record<string, string> = {
   EXPIRADA:   "#9CA3AF",
 };
 
-const COMBUSTIBLE_COLORS = ["#1a3a5c", "#F59E0B"];
+// Colores de las barras: primario verde + acento amber
+const COMBUSTIBLE_COLORS = ["#10B981", "#F59E0B"];
 
 const FILTROS_CONSUMIDORES = [
   { value: "TODOS",            label: "Todos los consumidores" },
@@ -48,10 +49,6 @@ const ESTADOS_OPTIONS = [
   { value: "EXPIRADA",   label: "Expirada" },
 ];
 
-// ------------------------------------------------
-// TIPOS
-// ------------------------------------------------
-
 interface Estadisticas {
   total: number;
   litros: { solicitados: number; aprobados: number; despachados: number };
@@ -62,28 +59,19 @@ interface Estadisticas {
   por_municipio:   { municipio: string; total: number }[];
 }
 
-// ------------------------------------------------
-// COMPONENTE TARJETA MÉTRICA
-// ------------------------------------------------
-
 function Metrica({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-4">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-slate-800">{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+    <div className="bg-card rounded-2xl border border-border shadow-sm px-5 py-4">
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
     </div>
   );
 }
 
-// ------------------------------------------------
-// COMPONENTE PRINCIPAL
-// ------------------------------------------------
-
 export default function ReportesANH() {
   const [tab, setTab] = useState<"solicitudes" | "consumidores">("solicitudes");
 
-  // ---- Filtros solicitudes ----
   const [fechaDesde,  setFechaDesde]  = useState("");
   const [fechaHasta,  setFechaHasta]  = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("");
@@ -91,26 +79,19 @@ export default function ReportesANH() {
   const [estacionFiltro, setEstacionFiltro] = useState("");
   const [estaciones, setEstaciones]  = useState<{ id: number; nombre: string }[]>([]);
 
-  // ---- Estadísticas ----
   const [stats,      setStats]      = useState<Estadisticas | null>(null);
   const [loadStats,  setLoadStats]  = useState(false);
   const [errorStats, setErrorStats] = useState("");
 
-  // ---- Descarga ----
   const [formato,      setFormato]      = useState<"PDF" | "EXCEL">("EXCEL");
   const [descargando,  setDescargando]  = useState(false);
   const [error,        setError]        = useState("");
   const [exito,        setExito]        = useState("");
 
-  // ---- Consumidores (reporte original) ----
   const [filtroConsumidor, setFiltroConsumidor] = useState("TODOS");
   const [formatoCons,      setFormatoCons]      = useState<"PDF" | "EXCEL">("EXCEL");
   const [diasCons,         setDiasCons]         = useState(30);
   const [descargandoCons,  setDescargandoCons]  = useState(false);
-
-  // ------------------------------------------------
-  // CARGAR ESTACIONES Y ESTADÍSTICAS
-  // ------------------------------------------------
 
   useEffect(() => {
     estacionesService.getAll({ estado: "ACTIVA" }).then(data => {
@@ -140,10 +121,6 @@ export default function ReportesANH() {
     if (tab === "solicitudes") cargarEstadisticas();
   }, [tab, cargarEstadisticas]);
 
-  // ------------------------------------------------
-  // DESCARGAR REPORTE SOLICITUDES
-  // ------------------------------------------------
-
   const descargarSolicitudes = async () => {
     setDescargando(true); setError(""); setExito("");
     try {
@@ -172,10 +149,6 @@ export default function ReportesANH() {
     } finally { setDescargando(false); }
   };
 
-  // ------------------------------------------------
-  // DESCARGAR REPORTE CONSUMIDORES
-  // ------------------------------------------------
-
   const descargarConsumidores = async () => {
     setDescargandoCons(true); setError(""); setExito("");
     try {
@@ -186,11 +159,7 @@ export default function ReportesANH() {
     } finally { setDescargandoCons(false); }
   };
 
-  const inputCls = "px-3 py-2 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-blue-400 outline-none";
-
-  // ------------------------------------------------
-  // RENDER
-  // ------------------------------------------------
+  const inputCls = "px-3 py-2 rounded-xl border border-border text-sm bg-input focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card outline-none";
 
   return (
     <Layout>
@@ -198,12 +167,12 @@ export default function ReportesANH() {
 
         {/* TÍTULO */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#1a3a5c] rounded-xl flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-navbar rounded-xl flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-navbar-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Reportes</h1>
-            <p className="text-slate-500 text-sm">Estadísticas y reportes del sistema ANH</p>
+            <h1 className="text-2xl font-bold text-foreground">Reportes</h1>
+            <p className="text-muted-foreground text-sm">Estadísticas y reportes del sistema ANH</p>
           </div>
         </div>
 
@@ -214,19 +183,19 @@ export default function ReportesANH() {
           </div>
         )}
         {exito && (
-          <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
+          <div className="flex items-center gap-3 bg-state-success-bg border border-state-success-fg/20 text-state-success-fg rounded-xl px-4 py-3 text-sm">
             <CheckCircle className="w-4 h-4 shrink-0" /> {exito}
           </div>
         )}
 
         {/* TABS */}
-        <div className="flex gap-2 border-b border-slate-200">
+        <div className="flex gap-2 border-b border-border">
           <button
             onClick={() => setTab("solicitudes")}
             className={`px-5 py-2.5 text-sm font-medium rounded-t-xl transition-colors ${
               tab === "solicitudes"
-                ? "bg-[#1a3a5c] text-white"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-navbar text-navbar-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Solicitudes
@@ -235,43 +204,41 @@ export default function ReportesANH() {
             onClick={() => setTab("consumidores")}
             className={`px-5 py-2.5 text-sm font-medium rounded-t-xl transition-colors ${
               tab === "consumidores"
-                ? "bg-[#1a3a5c] text-white"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-navbar text-navbar-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Consumidores
           </button>
         </div>
 
-        {/* ================================================ */}
-        {/* TAB: SOLICITUDES */}
-        {/* ================================================ */}
+        {/* TAB SOLICITUDES */}
         {tab === "solicitudes" && (
           <div className="space-y-5">
 
             {/* FILTROS */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Filter className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-medium text-slate-700">Filtros</span>
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Filtros</span>
               </div>
               <div className="flex flex-wrap gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-slate-500">Desde</label>
+                  <label className="text-xs text-muted-foreground">Desde</label>
                   <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} className={inputCls} />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-slate-500">Hasta</label>
+                  <label className="text-xs text-muted-foreground">Hasta</label>
                   <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} className={inputCls} />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-slate-500">Estado</label>
+                  <label className="text-xs text-muted-foreground">Estado</label>
                   <select value={estadoFiltro} onChange={e => setEstadoFiltro(e.target.value)} className={inputCls}>
                     {ESTADOS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-slate-500">Combustible</label>
+                  <label className="text-xs text-muted-foreground">Combustible</label>
                   <select value={combustibleFiltro} onChange={e => setCombustibleFiltro(e.target.value)} className={inputCls}>
                     <option value="">Todos</option>
                     <option value="GASOLINA">Gasolina</option>
@@ -279,7 +246,7 @@ export default function ReportesANH() {
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-slate-500">Estación</label>
+                  <label className="text-xs text-muted-foreground">Estación</label>
                   <select value={estacionFiltro} onChange={e => setEstacionFiltro(e.target.value)} className={inputCls}>
                     <option value="">Todas</option>
                     {estaciones.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
@@ -289,7 +256,7 @@ export default function ReportesANH() {
                   <button
                     onClick={cargarEstadisticas}
                     disabled={loadStats}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] disabled:bg-slate-300 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover disabled:bg-slate-300 transition-colors"
                   >
                     <RefreshCw className={`w-4 h-4 ${loadStats ? "animate-spin" : ""}`} />
                     Aplicar
@@ -312,8 +279,8 @@ export default function ReportesANH() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
                   {/* Por estado — Pie */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                    <h3 className="font-semibold text-slate-700 mb-4 text-sm">Solicitudes por estado</h3>
+                  <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                    <h3 className="font-semibold text-foreground mb-4 text-sm">Solicitudes por estado</h3>
                     <ResponsiveContainer width="100%" height={240}>
                       <PieChart>
                         <Pie
@@ -340,8 +307,8 @@ export default function ReportesANH() {
                   </div>
 
                   {/* Por combustible — Bar */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                    <h3 className="font-semibold text-slate-700 mb-4 text-sm">Por tipo de combustible</h3>
+                  <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                    <h3 className="font-semibold text-foreground mb-4 text-sm">Por tipo de combustible</h3>
                     <ResponsiveContainer width="100%" height={240}>
                       <BarChart data={stats.por_combustible} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -358,8 +325,8 @@ export default function ReportesANH() {
 
                 {/* EVOLUCIÓN MENSUAL */}
                 {stats.por_mes.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                    <h3 className="font-semibold text-slate-700 mb-4 text-sm">Evolución mensual (últimos 12 meses)</h3>
+                  <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                    <h3 className="font-semibold text-foreground mb-4 text-sm">Evolución mensual (últimos 12 meses)</h3>
                     <ResponsiveContainer width="100%" height={260}>
                       <LineChart data={stats.por_mes} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -367,7 +334,7 @@ export default function ReportesANH() {
                         <YAxis tick={{ fontSize: 11 }} />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="total"      name="Total"      stroke="#1a3a5c" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="total"      name="Total"      stroke="#17212B" strokeWidth={2} dot={false} />
                         <Line type="monotone" dataKey="aprobadas"  name="Aprobadas"  stroke="#10B981" strokeWidth={2} dot={false} />
                         <Line type="monotone" dataKey="despachadas" name="Despachadas" stroke="#3B82F6" strokeWidth={2} dot={false} />
                       </LineChart>
@@ -378,10 +345,9 @@ export default function ReportesANH() {
                 {/* GRÁFICOS FILA 2 */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-                  {/* Por estación */}
                   {stats.por_estacion.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                      <h3 className="font-semibold text-slate-700 mb-4 text-sm">Top estaciones de servicio</h3>
+                    <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                      <h3 className="font-semibold text-foreground mb-4 text-sm">Top estaciones de servicio</h3>
                       <ResponsiveContainer width="100%" height={240}>
                         <BarChart
                           data={stats.por_estacion}
@@ -392,16 +358,15 @@ export default function ReportesANH() {
                           <XAxis type="number" tick={{ fontSize: 11 }} />
                           <YAxis dataKey="estacion_nombre" type="category" tick={{ fontSize: 10 }} width={120} />
                           <Tooltip />
-                          <Bar dataKey="total" name="Solicitudes" fill="#1a3a5c" radius={[0,4,4,0]} />
+                          <Bar dataKey="total" name="Solicitudes" fill="#10B981" radius={[0,4,4,0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   )}
 
-                  {/* Por municipio */}
                   {stats.por_municipio.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                      <h3 className="font-semibold text-slate-700 mb-4 text-sm">Top municipios</h3>
+                    <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                      <h3 className="font-semibold text-foreground mb-4 text-sm">Top municipios</h3>
                       <ResponsiveContainer width="100%" height={240}>
                         <BarChart
                           data={stats.por_municipio}
@@ -423,7 +388,7 @@ export default function ReportesANH() {
 
             {loadStats && !stats && (
               <div className="flex items-center justify-center py-16">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             )}
 
@@ -434,20 +399,20 @@ export default function ReportesANH() {
             )}
 
             {/* DESCARGA */}
-            <div className="bg-[#1a3a5c] rounded-2xl p-6 text-white">
+            <div className="bg-navbar rounded-2xl p-6 text-navbar-foreground">
               <h3 className="font-semibold mb-3">Descargar reporte de solicitudes</h3>
-              <p className="text-blue-300 text-xs mb-4">
+              <p className="text-navbar-muted text-xs mb-4">
                 Descarga el reporte con los mismos filtros aplicados arriba.
               </p>
               <div className="flex gap-3 mb-4">
                 <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border cursor-pointer transition-colors ${
-                  formato === "EXCEL" ? "border-amber-400 bg-amber-400/20" : "border-white/20 hover:border-white/40"
+                  formato === "EXCEL" ? "border-primary bg-primary/20" : "border-white/20 hover:border-white/40"
                 }`}>
                   <input type="radio" name="formato" value="EXCEL" checked={formato === "EXCEL"} onChange={() => setFormato("EXCEL")} className="hidden" />
                   <FileSpreadsheet className="w-4 h-4" /> <span className="text-sm font-medium">Excel</span>
                 </label>
                 <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border cursor-pointer transition-colors ${
-                  formato === "PDF" ? "border-amber-400 bg-amber-400/20" : "border-white/20 hover:border-white/40"
+                  formato === "PDF" ? "border-primary bg-primary/20" : "border-white/20 hover:border-white/40"
                 }`}>
                   <input type="radio" name="formato" value="PDF" checked={formato === "PDF"} onChange={() => setFormato("PDF")} className="hidden" />
                   <FileText className="w-4 h-4" /> <span className="text-sm font-medium">PDF</span>
@@ -456,10 +421,10 @@ export default function ReportesANH() {
               <button
                 onClick={descargarSolicitudes}
                 disabled={descargando}
-                className="w-full flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 disabled:bg-slate-500 text-[#1a3a5c] font-semibold py-3 rounded-xl transition-colors text-sm"
+                className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-slate-500 text-primary-foreground font-semibold py-3 rounded-xl transition-colors text-sm"
               >
                 {descargando
-                  ? <div className="w-5 h-5 border-2 border-[#1a3a5c] border-t-transparent rounded-full animate-spin" />
+                  ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   : <Download className="w-5 h-5" />
                 }
                 {descargando ? "Generando..." : `Descargar ${formato}`}
@@ -468,26 +433,24 @@ export default function ReportesANH() {
           </div>
         )}
 
-        {/* ================================================ */}
-        {/* TAB: CONSUMIDORES */}
-        {/* ================================================ */}
+        {/* TAB CONSUMIDORES */}
         {tab === "consumidores" && (
           <div className="max-w-2xl space-y-5">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
-                <h2 className="font-semibold text-slate-700">Reporte de consumidores</h2>
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="font-semibold text-foreground">Reporte de consumidores</h2>
               </div>
               <div className="px-6 py-5 space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-3">Tipo de reporte</label>
+                  <label className="block text-sm font-medium text-foreground mb-3">Tipo de reporte</label>
                   <div className="grid grid-cols-1 gap-2">
                     {FILTROS_CONSUMIDORES.map(f => (
                       <label key={f.value} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${
-                        filtroConsumidor === f.value ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:bg-slate-50"
+                        filtroConsumidor === f.value ? "border-primary bg-primary/10" : "border-border hover:bg-background"
                       }`}>
                         <input type="radio" name="filtro_cons" value={f.value} checked={filtroConsumidor === f.value}
-                          onChange={() => setFiltroConsumidor(f.value)} className="text-blue-600" />
-                        <p className={`text-sm font-medium ${filtroConsumidor === f.value ? "text-blue-700" : "text-slate-700"}`}>
+                          onChange={() => setFiltroConsumidor(f.value)} className="text-primary accent-primary" />
+                        <p className={`text-sm font-medium ${filtroConsumidor === f.value ? "text-primary" : "text-foreground"}`}>
                           {f.label}
                         </p>
                       </label>
@@ -497,12 +460,12 @@ export default function ReportesANH() {
 
                 {filtroConsumidor === "SUPERARON_LIMITE" && (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Período (días)</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Período (días)</label>
                     <div className="flex gap-2 flex-wrap">
                       {[7, 15, 30, 60, 90].map(d => (
                         <button key={d} onClick={() => setDiasCons(d)}
                           className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                            diasCons === d ? "bg-[#1a3a5c] text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                            diasCons === d ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:bg-background"
                           }`}>
                           {d} días
                         </button>
@@ -512,24 +475,24 @@ export default function ReportesANH() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-3">Formato</label>
+                  <label className="block text-sm font-medium text-foreground mb-3">Formato</label>
                   <div className="grid grid-cols-2 gap-3">
                     {(["EXCEL", "PDF"] as const).map(f => (
                       <label key={f} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${
                         formatoCons === f
-                          ? f === "EXCEL" ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50"
-                          : "border-slate-200 hover:bg-slate-50"
+                          ? f === "EXCEL" ? "border-primary bg-primary/10" : "border-red-500 bg-red-50"
+                          : "border-border hover:bg-background"
                       }`}>
                         <input type="radio" name="formato_cons" value={f} checked={formatoCons === f}
                           onChange={() => setFormatoCons(f)} className="hidden" />
                         {f === "EXCEL"
-                          ? <FileSpreadsheet className={`w-5 h-5 ${formatoCons === "EXCEL" ? "text-green-600" : "text-slate-400"}`} />
-                          : <FileText        className={`w-5 h-5 ${formatoCons === "PDF"   ? "text-red-600"   : "text-slate-400"}`} />
+                          ? <FileSpreadsheet className={`w-5 h-5 ${formatoCons === "EXCEL" ? "text-primary" : "text-muted-foreground"}`} />
+                          : <FileText        className={`w-5 h-5 ${formatoCons === "PDF"   ? "text-red-600"   : "text-muted-foreground"}`} />
                         }
                         <p className={`text-sm font-medium ${
                           formatoCons === f
-                            ? f === "EXCEL" ? "text-green-700" : "text-red-700"
-                            : "text-slate-700"
+                            ? f === "EXCEL" ? "text-primary" : "text-red-700"
+                            : "text-foreground"
                         }`}>{f}</p>
                       </label>
                     ))}
@@ -538,18 +501,18 @@ export default function ReportesANH() {
               </div>
             </div>
 
-            <div className="bg-[#1a3a5c] rounded-2xl p-6 text-white">
+            <div className="bg-navbar rounded-2xl p-6 text-navbar-foreground">
               <h3 className="font-semibold mb-1">Resumen</h3>
-              <p className="text-blue-200 text-sm mb-4">
+              <p className="text-navbar-muted text-sm mb-4">
                 {FILTROS_CONSUMIDORES.find(f => f.value === filtroConsumidor)?.label} — {formatoCons}
               </p>
               <button
                 onClick={descargarConsumidores}
                 disabled={descargandoCons}
-                className="w-full flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 disabled:bg-slate-500 text-[#1a3a5c] font-semibold py-3 rounded-xl transition-colors text-sm"
+                className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-slate-500 text-primary-foreground font-semibold py-3 rounded-xl transition-colors text-sm"
               >
                 {descargandoCons
-                  ? <div className="w-5 h-5 border-2 border-[#1a3a5c] border-t-transparent rounded-full animate-spin" />
+                  ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   : <Download className="w-5 h-5" />
                 }
                 {descargandoCons ? "Generando..." : `Descargar ${formatoCons}`}

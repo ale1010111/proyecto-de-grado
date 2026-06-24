@@ -1,6 +1,5 @@
-// ------------------------------------------------
 // src/components/ui/Modal.tsx
-// ------------------------------------------------
+
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
@@ -26,12 +25,12 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${modalSizes[size]} max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h3 className="text-slate-800 font-semibold">{title}</h3>
+      <div className={`relative bg-card rounded-2xl shadow-2xl w-full ${modalSizes[size]} max-h-[90vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 className="text-foreground font-semibold">{title}</h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

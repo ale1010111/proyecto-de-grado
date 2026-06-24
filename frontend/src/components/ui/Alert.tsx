@@ -1,6 +1,4 @@
-// ------------------------------------------------
 // src/components/ui/Alert.tsx
-// ------------------------------------------------
 
 import { AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
 
@@ -13,9 +11,9 @@ interface AlertProps {
 }
 
 const alertConfig: Record<AlertType, { icon: any; classes: string }> = {
-  error:   { icon: AlertCircle,   classes: "bg-red-50 border-red-200 text-red-700"     },
-  success: { icon: CheckCircle,   classes: "bg-green-50 border-green-200 text-green-700" },
-  info:    { icon: Info,          classes: "bg-blue-50 border-blue-200 text-blue-700"   },
+  error:   { icon: AlertCircle,   classes: "bg-red-50 border-red-200 text-red-700" },
+  success: { icon: CheckCircle,   classes: "bg-state-success-bg border-state-success-fg/20 text-state-success-fg" },
+  info:    { icon: Info,          classes: "bg-primary/10 border-primary/30 text-primary" },
   warning: { icon: AlertTriangle, classes: "bg-amber-50 border-amber-200 text-amber-700" },
 };
 

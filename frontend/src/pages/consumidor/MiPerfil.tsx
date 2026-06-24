@@ -81,15 +81,15 @@ export default function MiPerfil() {
   if (loading) return (
     <Layout>
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     </Layout>
   );
 
   if (!perfil) return <Layout><p className="text-red-500">{error}</p></Layout>;
 
-  const inputCls = "w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none";
-  const selectCls = "w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none";
+  const inputCls  = "w-full px-3 py-2 rounded-lg border border-border text-sm bg-input focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card outline-none";
+  const selectCls = "w-full px-3 py-2 rounded-lg border border-border text-sm bg-input focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card outline-none";
 
   return (
     <Layout>
@@ -97,18 +97,18 @@ export default function MiPerfil() {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Mi Perfil</h1>
-            <p className="text-slate-500 text-sm mt-1">Información de tu cuenta</p>
+            <h1 className="text-2xl font-bold text-foreground">Mi Perfil</h1>
+            <p className="text-muted-foreground text-sm mt-1">Información de tu cuenta</p>
           </div>
           {!editando
-            ? <button onClick={() => setEditando(true)} className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+            ? <button onClick={() => setEditando(true)} className="flex items-center gap-2 px-4 py-2.5 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
                 <Edit2 className="w-4 h-4" /> Editar
               </button>
             : <div className="flex gap-2">
-                <button onClick={() => setEditando(false)} className="flex items-center gap-2 px-3 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                <button onClick={() => setEditando(false)} className="flex items-center gap-2 px-3 py-2 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
                   <X className="w-4 h-4" /> Cancelar
                 </button>
-                <button onClick={guardar} disabled={guardando} className="flex items-center gap-2 px-4 py-2 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] disabled:bg-slate-300 transition-colors">
+                <button onClick={guardar} disabled={guardando} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover disabled:bg-slate-300 transition-colors">
                   {guardando ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
                   Guardar
                 </button>
@@ -122,16 +122,16 @@ export default function MiPerfil() {
           </div>
         )}
         {exito && (
-          <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
+          <div className="flex items-center gap-3 bg-state-success-bg border border-state-success-fg/20 text-state-success-fg rounded-xl px-4 py-3 text-sm">
             <CheckCircle className="w-4 h-4 shrink-0" /> {exito}
           </div>
         )}
 
         {/* DATOS PERSONALES */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <User className="w-5 h-5 text-blue-600" />
-            <h2 className="font-semibold text-slate-700">Datos personales</h2>
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+            <User className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-foreground">Datos personales</h2>
           </div>
           <div className="px-6 py-4 grid grid-cols-2 gap-4">
             {[
@@ -142,52 +142,52 @@ export default function MiPerfil() {
               ["Fecha nacimiento", formatFecha(perfil.fecha_nacimiento)],
             ].map(([label, valor]) => (
               <div key={label}>
-                <p className="text-xs text-slate-500 mb-0.5">{label}</p>
-                <p className="text-sm font-medium text-slate-800">{valor}</p>
+                <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                <p className="text-sm font-medium text-foreground">{valor}</p>
               </div>
             ))}
             <div>
-              <p className="text-xs text-slate-500 mb-0.5">Celular</p>
+              <p className="text-xs text-muted-foreground mb-0.5">Celular</p>
               {editando
                 ? <input value={form.celular} onChange={e => setForm(f => ({ ...f, celular: e.target.value }))} className={inputCls} placeholder="Ej: 70000000" />
-                : <p className="text-sm font-medium text-slate-800">{perfil.celular || "—"}</p>
+                : <p className="text-sm font-medium text-foreground">{perfil.celular || "—"}</p>
               }
             </div>
           </div>
         </div>
 
         {/* UBICACIÓN */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-blue-600" />
-            <h2 className="font-semibold text-slate-700">Ubicación</h2>
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+            <MapPin className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-foreground">Ubicación</h2>
           </div>
           <div className="px-6 py-4 grid grid-cols-2 gap-4">
             {editando ? (
               <>
                 <div className="col-span-2">
-                  <label className="text-xs text-slate-500 mb-1 block">Departamento</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Departamento</label>
                   <select value={form.departamento} onChange={e => onDepartamento(e.target.value)} className={selectCls}>
                     <option value="">Seleccionar...</option>
                     {departamentos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Provincia</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Provincia</label>
                   <select value={form.provincia} onChange={e => onProvincia(e.target.value)} className={selectCls} disabled={!provincias.length}>
                     <option value="">Seleccionar...</option>
                     {provincias.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500 mb-1 block">Municipio</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Municipio</label>
                   <select value={form.municipio} onChange={e => setForm(f => ({ ...f, municipio: e.target.value }))} className={selectCls} disabled={!municipios.length}>
                     <option value="">Seleccionar...</option>
                     {municipios.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="text-xs text-slate-500 mb-1 block">Dirección</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Dirección</label>
                   <input value={form.direccion} onChange={e => setForm(f => ({ ...f, direccion: e.target.value }))} className={inputCls} maxLength={100} placeholder="Calle, N°, Barrio..." />
                 </div>
               </>
@@ -199,13 +199,13 @@ export default function MiPerfil() {
                   ["Municipio",    perfil.municipio_nombre    || "—"],
                 ].map(([label, valor]) => (
                   <div key={label}>
-                    <p className="text-xs text-slate-500 mb-0.5">{label}</p>
-                    <p className="text-sm font-medium text-slate-800">{valor}</p>
+                    <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                    <p className="text-sm font-medium text-foreground">{valor}</p>
                   </div>
                 ))}
                 <div className="col-span-2">
-                  <p className="text-xs text-slate-500 mb-0.5">Dirección</p>
-                  <p className="text-sm font-medium text-slate-800">{perfil.direccion || "—"}</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">Dirección</p>
+                  <p className="text-sm font-medium text-foreground">{perfil.direccion || "—"}</p>
                 </div>
               </>
             )}
@@ -213,10 +213,10 @@ export default function MiPerfil() {
         </div>
 
         {/* ACTIVIDAD */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <Briefcase className="w-5 h-5 text-blue-600" />
-            <h2 className="font-semibold text-slate-700">Actividad económica</h2>
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+            <Briefcase className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-foreground">Actividad económica</h2>
           </div>
           <div className="px-6 py-4">
             {editando
@@ -224,24 +224,24 @@ export default function MiPerfil() {
                   <option value="">Seleccionar...</option>
                   {Object.entries(ACTIVIDADES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
-              : <p className="text-sm font-medium text-slate-800">{perfil.actividad_display || "—"}</p>
+              : <p className="text-sm font-medium text-foreground">{perfil.actividad_display || "—"}</p>
             }
           </div>
         </div>
 
         {/* ESTADO */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <Shield className="w-5 h-5 text-blue-600" />
-            <h2 className="font-semibold text-slate-700">Estado de cuenta</h2>
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+            <Shield className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-foreground">Estado de cuenta</h2>
           </div>
           <div className="px-6 py-4 grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-slate-500 mb-1">Verificación de identidad</p>
+              <p className="text-xs text-muted-foreground mb-1">Verificación de identidad</p>
               <EstadoSolicitudBadge estado={perfil.estado_identidad} />
             </div>
             <div>
-              <p className="text-xs text-slate-500 mb-1">Alerta de repetitividad</p>
+              <p className="text-xs text-muted-foreground mb-1">Alerta de repetitividad</p>
               <AlertaBadge alerta={perfil.alerta_repetitividad} />
             </div>
           </div>
@@ -249,24 +249,24 @@ export default function MiPerfil() {
 
         {/* DOCUMENTOS */}
         {perfil.documentos.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-              <FileImage className="w-5 h-5 text-blue-600" />
-              <h2 className="font-semibold text-slate-700">Documentos</h2>
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+              <FileImage className="w-5 h-5 text-primary" />
+              <h2 className="font-semibold text-foreground">Documentos</h2>
             </div>
             {perfil.documentos.map(doc => (
-              <div key={doc.id} className="px-6 py-4 border-b border-slate-100 last:border-0">
-                <p className="text-sm font-medium text-slate-700 mb-1">{doc.tipo_documento_display}</p>
-                <p className="text-xs text-slate-500">N°: {doc.numero_documento} {doc.complemento_documento}</p>
+              <div key={doc.id} className="px-6 py-4 border-b border-border last:border-0">
+                <p className="text-sm font-medium text-foreground mb-1">{doc.tipo_documento_display}</p>
+                <p className="text-xs text-muted-foreground">N°: {doc.numero_documento} {doc.complemento_documento}</p>
                 <div className="flex gap-3 mt-3">
                   {doc.anverso && (
-                    <a href={doc.anverso} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Ver anverso</a>
+                    <a href={doc.anverso} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Ver anverso</a>
                   )}
                   {doc.reverso && (
-                    <a href={doc.reverso} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Ver reverso</a>
+                    <a href={doc.reverso} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Ver reverso</a>
                   )}
                   {doc.foto_sosteniendo && (
-                    <a href={doc.foto_sosteniendo} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Ver foto</a>
+                    <a href={doc.foto_sosteniendo} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Ver foto</a>
                   )}
                 </div>
               </div>

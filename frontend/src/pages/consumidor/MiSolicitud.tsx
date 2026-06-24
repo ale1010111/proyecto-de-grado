@@ -86,11 +86,9 @@ export default function MiSolicitud() {
   const [error,            setError]            = useState("");
   const [exito,            setExito]            = useState("");
   const [docJustificativo, setDocJustificativo] = useState<File | null>(null);
-  const [pdfViewer,     setPdfViewer]     = useState<"declaracion" | "comprobante" | null>(null);
+  const [pdfViewer,        setPdfViewer]        = useState<"declaracion" | "comprobante" | null>(null);
   const [docRespuesta,     setDocRespuesta]     = useState<File | null>(null);
 
-  // Cascada de ubicación (el consumidor la indica al solicitar,
-  // ya que puede haberse mudado desde su registro)
   const [deptos, setDeptos] = useState<Opcion[]>([]);
   const [provs,  setProvs]  = useState<Opcion[]>([]);
   const [munis,  setMunis]  = useState<Opcion[]>([]);
@@ -120,7 +118,7 @@ export default function MiSolicitud() {
   });
 
   // ------------------------------------------------
-  // CARGAR — lista + detalle completo de activa
+  // CARGAR
   // ------------------------------------------------
   const cargar = async () => {
     setLoading(true);
@@ -130,7 +128,6 @@ export default function MiSolicitud() {
         ["PENDIENTE", "OBSERVADA", "APROBADA"].includes(s.estado)
       ) ?? null;
 
-      // Cargar detalle completo para obtener fecha_limite_respuesta y observacion_anh
       if (activaBasic) {
         const detalle = await solicitudesService.getById(activaBasic.id_publico);
         setSolicitudActiva(detalle);
@@ -150,7 +147,6 @@ export default function MiSolicitud() {
 
   useEffect(() => { cargar(); }, []);
 
-  // Cargar departamentos al montar (solo se usan dentro del form)
   useEffect(() => {
     catalogosService.getDepartamentos()
       .then(setDeptos)
@@ -158,7 +154,7 @@ export default function MiSolicitud() {
   }, []);
 
   // ------------------------------------------------
-  // CASCADA: DEPARTAMENTO -> PROVINCIA -> MUNICIPIO -> ESTACIONES
+  // CASCADA UBICACIÓN
   // ------------------------------------------------
 
   const onDeptoChange = async (deptoId: number) => {
@@ -307,14 +303,14 @@ export default function MiSolicitud() {
   if (loading) return (
     <Layout>
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     </Layout>
   );
 
   const inputCls = (hasErr: boolean) =>
-    `w-full px-4 py-2.5 rounded-xl border text-sm outline-none bg-slate-50 transition-colors ${
-      hasErr ? "border-red-300" : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:bg-white"
+    `w-full px-4 py-2.5 rounded-xl border text-sm outline-none bg-input transition-colors ${
+      hasErr ? "border-red-300" : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card"
     }`;
 
   // ------------------------------------------------
@@ -340,13 +336,13 @@ export default function MiSolicitud() {
         {/* TÍTULO */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Mis Solicitudes</h1>
-            <p className="text-slate-500 text-sm mt-1">Gestiona tu solicitud de combustible</p>
+            <h1 className="text-2xl font-bold text-foreground">Mis Solicitudes</h1>
+            <p className="text-muted-foreground text-sm mt-1">Gestiona tu solicitud de combustible</p>
           </div>
           {!solicitudActiva && (
             <button
               onClick={() => { setMostrarForm(!mostrarForm); setError(""); setExito(""); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover transition-colors"
             >
               {mostrarForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
               {mostrarForm ? "Cancelar" : "Nueva solicitud"}
@@ -361,7 +357,7 @@ export default function MiSolicitud() {
           </div>
         )}
         {exito && (
-          <div className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
+          <div className="flex items-start gap-3 bg-state-success-bg border border-state-success-fg/20 text-state-success-fg rounded-xl px-4 py-3 text-sm">
             <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" /> <span>{exito}</span>
           </div>
         )}
@@ -417,7 +413,7 @@ export default function MiSolicitud() {
 
         {/* FORMULARIO DE RESPUESTA */}
         {estaObservada && mostrarRespuesta && !plazoVencido && (
-          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-amber-100 bg-amber-50">
               <h2 className="font-semibold text-amber-800 flex items-center gap-2 text-sm">
                 <MessageSquare className="w-4 h-4" />
@@ -426,7 +422,7 @@ export default function MiSolicitud() {
             </div>
 
             <div className="px-6 pt-4">
-              <p className="text-xs text-slate-500 mb-1">Observación de la ANH:</p>
+              <p className="text-xs text-muted-foreground mb-1">Observación de la ANH:</p>
               <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 mb-4">
                 {solicitudActiva?.observacion_anh
                   ? solicitudActiva.observacion_anh
@@ -437,7 +433,7 @@ export default function MiSolicitud() {
 
             <form onSubmit={formRespuesta.handleSubmit(onResponder)} className="px-6 pb-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
                   Tu respuesta / justificación *
                 </label>
                 <textarea
@@ -454,11 +450,11 @@ export default function MiSolicitud() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
                   Adjuntar documento (opcional)
                 </label>
                 <label className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border text-sm cursor-pointer transition-colors ${
-                  docRespuesta ? "border-green-300 bg-green-50" : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                  docRespuesta ? "border-primary bg-state-success-bg" : "border-border bg-input hover:bg-background"
                 }`}>
                   <input
                     type="file"
@@ -467,8 +463,8 @@ export default function MiSolicitud() {
                     onChange={e => setDocRespuesta(e.target.files?.[0] ?? null)}
                   />
                   {docRespuesta
-                    ? <><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-green-700 truncate">{docRespuesta.name}</span></>
-                    : <><FileText className="w-4 h-4 text-slate-400" /><span className="text-slate-500">PDF o imagen — máx 10MB</span></>
+                    ? <><CheckCircle className="w-4 h-4 text-primary" /><span className="text-state-success-fg truncate">{docRespuesta.name}</span></>
+                    : <><FileText className="w-4 h-4 text-muted-foreground" /><span className="text-muted-foreground">PDF o imagen — máx 10MB</span></>
                   }
                 </label>
                 {docRespuesta && (
@@ -481,7 +477,7 @@ export default function MiSolicitud() {
 
               <div className="flex gap-3">
                 <button type="button" onClick={() => setMostrarRespuesta(false)}
-                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  className="px-4 py-2.5 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
                   Cancelar
                 </button>
                 <button type="submit" disabled={respondiendo}
@@ -499,17 +495,17 @@ export default function MiSolicitud() {
 
         {/* SOLICITUD ACTIVA */}
         {solicitudActiva && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-blue-600" />
+                <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-800 text-sm">
+                  <p className="font-semibold text-foreground text-sm">
                     Solicitud #{formatIdPublico(solicitudActiva.id_publico)}
                   </p>
-                  <p className="text-slate-400 text-xs">
+                  <p className="text-muted-foreground text-xs">
                     {formatFecha(solicitudActiva.fecha_creacion, true)}
                   </p>
                 </div>
@@ -519,24 +515,24 @@ export default function MiSolicitud() {
 
             <div className="px-6 py-4 grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-slate-500 mb-0.5">Combustible</p>
-                <p className="text-sm font-medium text-slate-800">
+                <p className="text-xs text-muted-foreground mb-0.5">Combustible</p>
+                <p className="text-sm font-medium text-foreground">
                   {COMBUSTIBLES[solicitudActiva.tipo_combustible] ?? solicitudActiva.tipo_combustible}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5">Litros solicitados</p>
-                <p className="text-sm font-medium text-slate-800">{solicitudActiva.litros_solicitados} L</p>
+                <p className="text-xs text-muted-foreground mb-0.5">Litros solicitados</p>
+                <p className="text-sm font-medium text-foreground">{solicitudActiva.litros_solicitados} L</p>
               </div>
               {solicitudActiva.litros_aprobados && (
                 <div>
-                  <p className="text-xs text-slate-500 mb-0.5">Litros aprobados</p>
-                  <p className="text-sm font-medium text-green-600">{solicitudActiva.litros_aprobados} L</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">Litros aprobados</p>
+                  <p className="text-sm font-medium text-primary">{solicitudActiva.litros_aprobados} L</p>
                 </div>
               )}
               {solicitudActiva.fecha_expiracion && (
                 <div>
-                  <p className="text-xs text-slate-500 mb-0.5">Válido hasta</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">Válido hasta</p>
                   <p className="text-sm font-medium text-orange-600">
                     {formatFecha(solicitudActiva.fecha_expiracion, true)}
                   </p>
@@ -544,7 +540,7 @@ export default function MiSolicitud() {
               )}
               {solicitudActiva.observacion_anh && (
                 <div className="col-span-2">
-                  <p className="text-xs text-slate-500 mb-1">Observación ANH</p>
+                  <p className="text-xs text-muted-foreground mb-1">Observación ANH</p>
                   <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                     {solicitudActiva.observacion_anh}
                   </p>
@@ -552,23 +548,23 @@ export default function MiSolicitud() {
               )}
               {solicitudActiva.respuesta_consumidor && (
                 <div className="col-span-2">
-                  <p className="text-xs text-slate-500 mb-1">Tu respuesta enviada</p>
-                  <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                  <p className="text-xs text-muted-foreground mb-1">Tu respuesta enviada</p>
+                  <p className="text-sm text-state-success-fg bg-state-success-bg border border-state-success-fg/20 rounded-xl px-4 py-3">
                     {solicitudActiva.respuesta_consumidor}
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="px-6 py-3 border-t border-slate-100 flex gap-2 flex-wrap">
+            <div className="px-6 py-3 border-t border-border flex gap-2 flex-wrap">
               {solicitudActiva.estado === "APROBADA" && (
                 <button onClick={descargarComprobante}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">
+                  className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary-hover transition-colors">
                   <Download className="w-3.5 h-3.5" /> Descargar comprobante
                 </button>
               )}
               <button onClick={() => descargarDeclaracion(solicitudActiva.id_publico)}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors">
+                className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20 transition-colors">
                 <FileText className="w-3.5 h-3.5" /> Declaración jurada
               </button>
               {["PENDIENTE", "OBSERVADA"].includes(solicitudActiva.estado) && (
@@ -583,14 +579,14 @@ export default function MiSolicitud() {
 
         {/* FORMULARIO NUEVA SOLICITUD */}
         {mostrarForm && !solicitudActiva && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h2 className="font-semibold text-slate-800">Nueva solicitud de combustible</h2>
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="font-semibold text-foreground">Nueva solicitud de combustible</h2>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
                     Tipo de combustible *
                   </label>
                   <select {...register("tipo_combustible")} className={inputCls(!!errors.tipo_combustible)}>
@@ -602,7 +598,7 @@ export default function MiSolicitud() {
                   {errors.tipo_combustible && <p className="text-red-500 text-xs mt-1">{errors.tipo_combustible.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
                     Litros solicitados *
                   </label>
                   <input type="number" min={1} max={120}
@@ -615,7 +611,7 @@ export default function MiSolicitud() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
                   Uso / destino del combustible *
                 </label>
                 <textarea {...register("uso_combustible")} rows={3} maxLength={200}
@@ -626,18 +622,18 @@ export default function MiSolicitud() {
               </div>
 
               {/* UBICACIÓN ACTUAL */}
-              <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50/50">
-                <p className="text-sm font-medium text-slate-700">
+              <div className="border border-border rounded-xl p-4 space-y-4 bg-background/50">
+                <p className="text-sm font-medium text-foreground">
                   ¿Dónde te encuentras actualmente? *
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Indica tu ubicación actual (puede ser distinta a la registrada en tu perfil).
                   Esto permite mostrarte las estaciones de servicio cercanas.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Departamento *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Departamento *</label>
                     <select
                       value={watchDepto || 0}
                       onChange={e => onDeptoChange(Number(e.target.value))}
@@ -650,7 +646,7 @@ export default function MiSolicitud() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Provincia *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Provincia *</label>
                     <select
                       value={watchProv || 0}
                       onChange={e => onProvChange(Number(e.target.value))}
@@ -666,7 +662,7 @@ export default function MiSolicitud() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Municipio *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Municipio *</label>
                     <select
                       value={watchMuni || 0}
                       onChange={e => onMuniChange(Number(e.target.value))}
@@ -684,7 +680,7 @@ export default function MiSolicitud() {
 
                 {/* ESTACIÓN DE SERVICIO */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">
                     Estación de servicio *
                   </label>
                   <select
@@ -705,38 +701,38 @@ export default function MiSolicitud() {
                     {estaciones.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
                   </select>
                   {errors.estacion_servicio && <p className="text-red-500 text-xs mt-1">{errors.estacion_servicio.message}</p>}
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     La ANH confirmará la estación asignada al aprobar tu solicitud.
                   </p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
                   Documento justificativo (opcional)
                 </label>
                 <label className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border text-sm cursor-pointer transition-colors ${
-                  docJustificativo ? "border-green-300 bg-green-50" : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                  docJustificativo ? "border-primary bg-state-success-bg" : "border-border bg-input hover:bg-background"
                 }`}>
                   <input type="file" accept="image/*,application/pdf" className="hidden"
                     onChange={e => setDocJustificativo(e.target.files?.[0] ?? null)} />
                   {docJustificativo
-                    ? <><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-green-700 truncate">{docJustificativo.name}</span></>
-                    : <><FileText className="w-4 h-4 text-slate-400" /><span className="text-slate-500">PDF, JPG o PNG — máx 10MB</span></>
+                    ? <><CheckCircle className="w-4 h-4 text-primary" /><span className="text-state-success-fg truncate">{docJustificativo.name}</span></>
+                    : <><FileText className="w-4 h-4 text-muted-foreground" /><span className="text-muted-foreground">PDF, JPG o PNG — máx 10MB</span></>
                   }
                 </label>
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                <p className="text-xs text-slate-600 leading-relaxed mb-3">
+              <div className="bg-background rounded-xl p-4 border border-border">
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                   <strong>Declaración jurada:</strong> Declaro bajo juramento que los datos
                   proporcionados son verídicos y que el combustible solicitado será utilizado
                   exclusivamente para el uso declarado.
                 </p>
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" {...register("declaracion_jurada_confirmada")}
-                    className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600" />
-                  <span className="text-sm text-slate-700 font-medium">
+                    className="mt-0.5 w-4 h-4 rounded border-border text-primary accent-primary" />
+                  <span className="text-sm text-foreground font-medium">
                     Confirmo y acepto la declaración jurada
                   </span>
                 </label>
@@ -750,11 +746,11 @@ export default function MiSolicitud() {
                     setMostrarForm(false); reset();
                     setProvs([]); setMunis([]); setEstaciones([]);
                   }}
-                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  className="px-4 py-2.5 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
                   Cancelar
                 </button>
                 <button type="submit" disabled={creando}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[#1a3a5c] hover:bg-[#152e4d] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors">
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-slate-300 disabled:cursor-not-allowed text-primary-foreground rounded-xl text-sm font-medium transition-colors">
                   {creando
                     ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     : <FileText className="w-4 h-4" />
@@ -768,24 +764,24 @@ export default function MiSolicitud() {
 
         {/* HISTORIAL */}
         {historial.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <button onClick={() => setMostrarHistorial(!mostrarHistorial)}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-background transition-colors">
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-slate-400" />
-                <span className="font-semibold text-slate-700">Historial ({historial.length})</span>
+                <Clock className="w-5 h-5 text-muted-foreground" />
+                <span className="font-semibold text-foreground">Historial ({historial.length})</span>
               </div>
-              {mostrarHistorial ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              {mostrarHistorial ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
             </button>
             {mostrarHistorial && (
-              <div className="border-t border-slate-100 divide-y divide-slate-100">
+              <div className="border-t border-border divide-y divide-border">
                 {historial.map(s => (
                   <div key={s.id_publico} className="px-6 py-3 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-sm font-medium text-foreground">
                         #{formatIdPublico(s.id_publico)} — {COMBUSTIBLES[s.tipo_combustible]} {s.litros_solicitados}L
                       </p>
-                      <p className="text-xs text-slate-400">{formatFecha(s.fecha_creacion)}</p>
+                      <p className="text-xs text-muted-foreground">{formatFecha(s.fecha_creacion)}</p>
                     </div>
                     <EstadoSolicitudBadge estado={s.estado} />
                   </div>
@@ -797,16 +793,16 @@ export default function MiSolicitud() {
 
         {/* ESTADO VACÍO */}
         {!solicitudActiva && !mostrarForm && historial.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 py-12 text-center">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-blue-400" />
+          <div className="bg-card rounded-2xl border border-border shadow-sm px-6 py-12 text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-slate-700 font-semibold mb-2">Sin solicitudes</h3>
-            <p className="text-slate-500 text-sm mb-6">
+            <h3 className="text-foreground font-semibold mb-2">Sin solicitudes</h3>
+            <p className="text-muted-foreground text-sm mb-6">
               No tienes solicitudes registradas. Crea tu primera solicitud de combustible.
             </p>
             <button onClick={() => setMostrarForm(true)}
-              className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+              className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover transition-colors">
               <Plus className="w-4 h-4" /> Nueva solicitud
             </button>
           </div>

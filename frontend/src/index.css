@@ -1,2 +1,53 @@
 /* src/index.css */
 @import "tailwindcss";
+
+/* ============================================
+   PALETA SEMÁNTICA ANH BOLIVIA
+   ============================================ */
+
+@theme {
+  /* Navbar */
+  --color-navbar:            #17212B;
+  --color-navbar-foreground: #FFFFFF;
+  --color-navbar-muted:      #94A3B8;
+
+  /* Primario (verde) */
+  --color-primary:            #10B981;
+  --color-primary-hover:      #059669;
+  --color-primary-foreground: #FFFFFF;
+
+  /* Fondos */
+  --color-background: #F8FAFC;
+  --color-card:       #FFFFFF;
+
+  /* Texto */
+  --color-foreground:       #111827;
+  --color-muted-foreground: #6B7280;
+
+  /* Bordes e inputs */
+  --color-border: #E5E7EB;
+  --color-input:  #F8FAFC;
+  --color-ring:   #10B981;
+
+  /* Estados semánticos de badges */
+  --color-state-pending-bg: #FEF3C7;
+  --color-state-pending-fg: #92400E;
+  --color-state-success-bg: #D1FAE5;
+  --color-state-success-fg: #065F46;
+  --color-state-warning-bg: #FFEDD5;
+  --color-state-warning-fg: #9A3412;
+  --color-state-danger-bg:  #FEE2E2;
+  --color-state-danger-fg:  #991B1B;
+}
+
+/* ============================================
+   ESTILOS BASE
+   ============================================ */
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+}

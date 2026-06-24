@@ -79,24 +79,23 @@ export default function Navbar() {
     location.pathname === path ||
     location.pathname.startsWith(path + "/");
 
-  // Subtítulo del rol — para ESS incluye el nombre de la estación
   const rolSubtitulo = user.tipo_usuario === "ESS" && user.estacion_nombre
     ? `Operador ESS — ${user.estacion_nombre}`
     : rolLabels[user.tipo_usuario];
 
   return (
-    <nav className="bg-[#1a3a5c] shadow-lg sticky top-0 z-50">
+    <nav className="bg-navbar shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
           {/* ---- LOGO ---- */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center shadow-md group-hover:bg-amber-300 transition-colors">
-              <Flame className="w-5 h-5 text-[#1a3a5c]" strokeWidth={2.5} />
+            <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shadow-md group-hover:bg-primary-hover transition-colors">
+              <Flame className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
             </div>
             <div className="hidden sm:block">
-              <p className="text-white font-bold text-sm leading-tight tracking-wide">ANH Bolivia</p>
-              <p className="text-blue-300 text-xs leading-tight">Gestión de Combustible</p>
+              <p className="text-navbar-foreground font-bold text-sm leading-tight tracking-wide">ANH Bolivia</p>
+              <p className="text-navbar-muted text-xs leading-tight">Gestión de Combustible</p>
             </div>
           </Link>
 
@@ -108,8 +107,8 @@ export default function Navbar() {
                 to={path}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive(path)
-                    ? "bg-white/15 text-white"
-                    : "text-blue-200 hover:bg-white/10 hover:text-white"
+                    ? "bg-white/10 text-navbar-foreground"
+                    : "text-navbar-muted hover:bg-white/5 hover:text-navbar-foreground"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -122,19 +121,18 @@ export default function Navbar() {
           <div className="hidden md:block relative">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-blue-200 hover:bg-white/10 hover:text-white transition-all"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-navbar-muted hover:bg-white/5 hover:text-navbar-foreground transition-all"
             >
-              <div className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center">
-                <span className="text-[#1a3a5c] font-bold text-sm">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">
                   {user.nombres?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="text-left">
-                <p className="text-white text-sm font-medium leading-tight">
+                <p className="text-navbar-foreground text-sm font-medium leading-tight">
                   {user.nombres}
                 </p>
-                {/* Para ESS muestra "Operador ESS — E.S. POMPEYA YPFB" */}
-                <p className="text-blue-300 text-xs leading-tight max-w-48 truncate">
+                <p className="text-navbar-muted text-xs leading-tight max-w-48 truncate">
                   {rolSubtitulo}
                 </p>
               </div>
@@ -142,17 +140,16 @@ export default function Navbar() {
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50">
-                <div className="px-4 py-3 border-b border-slate-100">
-                  <p className="text-slate-800 font-semibold text-sm truncate">
+              <div className="absolute right-0 top-full mt-2 w-64 bg-card rounded-xl shadow-xl border border-border py-1 z-50">
+                <div className="px-4 py-3 border-b border-border">
+                  <p className="text-foreground font-semibold text-sm truncate">
                     {user.nombres} {user.apellido_paterno}
                   </p>
-                  <p className="text-slate-500 text-xs truncate">{user.email}</p>
-                  {/* Badge de estación para ESS */}
+                  <p className="text-muted-foreground text-xs truncate">{user.email}</p>
                   {user.tipo_usuario === "ESS" && user.estacion_nombre && (
-                    <div className="mt-2 flex items-center gap-1.5 bg-blue-50 rounded-lg px-2.5 py-1.5">
-                      <Building2 className="w-3 h-3 text-blue-500 shrink-0" />
-                      <p className="text-blue-700 text-xs font-medium truncate">
+                    <div className="mt-2 flex items-center gap-1.5 bg-primary/10 rounded-lg px-2.5 py-1.5">
+                      <Building2 className="w-3 h-3 text-primary shrink-0" />
+                      <p className="text-primary text-xs font-medium truncate">
                         {user.estacion_nombre}
                       </p>
                     </div>
@@ -172,7 +169,7 @@ export default function Navbar() {
           {/* ---- HAMBURGER (mobile) ---- */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 rounded-lg text-blue-200 hover:bg-white/10 hover:text-white transition-colors"
+            className="md:hidden p-2 rounded-lg text-navbar-muted hover:bg-white/5 hover:text-navbar-foreground transition-colors"
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -181,7 +178,7 @@ export default function Navbar() {
 
       {/* ---- MOBILE MENU ---- */}
       {menuOpen && (
-        <div className="md:hidden bg-[#152e4d] border-t border-white/10 px-4 py-3 space-y-1">
+        <div className="md:hidden bg-navbar border-t border-white/10 px-4 py-3 space-y-1">
           {items.map(({ label, path, icon: Icon }) => (
             <Link
               key={path}
@@ -189,8 +186,8 @@ export default function Navbar() {
               onClick={() => setMenuOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive(path)
-                  ? "bg-white/15 text-white"
-                  : "text-blue-200 hover:bg-white/10 hover:text-white"
+                  ? "bg-white/10 text-navbar-foreground"
+                  : "text-navbar-muted hover:bg-white/5 hover:text-navbar-foreground"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -199,15 +196,14 @@ export default function Navbar() {
           ))}
           <div className="border-t border-white/10 pt-2 mt-2">
             <div className="px-3 py-2">
-              <p className="text-white text-sm font-medium">
+              <p className="text-navbar-foreground text-sm font-medium">
                 {user.nombres} {user.apellido_paterno}
               </p>
-              <p className="text-blue-300 text-xs">{user.email}</p>
-              {/* Estación en mobile para ESS */}
+              <p className="text-navbar-muted text-xs">{user.email}</p>
               {user.tipo_usuario === "ESS" && user.estacion_nombre && (
-                <div className="mt-1.5 flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1.5">
-                  <Building2 className="w-3 h-3 text-amber-400 shrink-0" />
-                  <p className="text-amber-300 text-xs font-medium truncate">
+                <div className="mt-1.5 flex items-center gap-1.5 bg-primary/20 rounded-lg px-2.5 py-1.5">
+                  <Building2 className="w-3 h-3 text-primary shrink-0" />
+                  <p className="text-primary text-xs font-medium truncate">
                     {user.estacion_nombre}
                   </p>
                 </div>
@@ -215,7 +211,7 @@ export default function Navbar() {
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-white/10 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-white/5 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Cerrar sesión

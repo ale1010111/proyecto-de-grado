@@ -54,8 +54,8 @@ interface Opcion { id: number; nombre: string; }
 function Dato({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div>
-      <p className="text-xs text-slate-500 mb-0.5">{label}</p>
-      <p className="text-sm font-medium text-slate-800">{value ?? "—"}</p>
+      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-foreground">{value ?? "—"}</p>
     </div>
   );
 }
@@ -76,7 +76,6 @@ export default function DetalleSolicitudANH() {
   const [exito,       setExito]       = useState("");
   const [pdfViewer,   setPdfViewer]   = useState<"declaracion" | "comprobante" | null>(null);
 
-  // Cascada geográfica para el formulario de aprobación
   const [deptos,     setDeptos]     = useState<Opcion[]>([]);
   const [provs,      setProvs]      = useState<Opcion[]>([]);
   const [munis,      setMunis]      = useState<Opcion[]>([]);
@@ -99,16 +98,11 @@ export default function DetalleSolicitudANH() {
   const formObservar = useForm<ObservarData>({ resolver: zodResolver(observarSchema) });
   const formRechazar = useForm<RechazarData>({ resolver: zodResolver(rechazarSchema) });
 
-  // Valores actuales del form de aprobación (para advertencias)
   const watchCombustible = formAprobar.watch("tipo_combustible_aprobado");
   const watchLitros      = formAprobar.watch("litros_aprobados");
   const watchDepto       = formAprobar.watch("departamento");
   const watchProv        = formAprobar.watch("provincia");
   const watchMuni        = formAprobar.watch("municipio");
-
-  // ------------------------------------------------
-  // CARGAR SOLICITUD + CATÁLOGOS INICIALES
-  // ------------------------------------------------
 
   useEffect(() => {
     if (!idPublico) return;
@@ -121,12 +115,6 @@ export default function DetalleSolicitudANH() {
     }).catch(() => setError("Error al cargar la solicitud."))
       .finally(() => setLoading(false));
   }, [idPublico]);
-
-  // ------------------------------------------------
-  // PRECARGAR FORM APROBAR cuando se abre la acción
-  // Se precarga con los datos solicitados por el consumidor.
-  // El operador puede modificarlos, pero verá una advertencia.
-  // ------------------------------------------------
 
   useEffect(() => {
     if (accion !== "aprobar" || !solicitud) return;
@@ -141,7 +129,6 @@ export default function DetalleSolicitudANH() {
       observacion_anh:           "",
     });
 
-    // Precargar la cascada geográfica con la ubicación del consumidor
     const cargarCascada = async () => {
       if (!solicitud.departamento) return;
       setCargandoCatalogo(true);
@@ -153,7 +140,6 @@ export default function DetalleSolicitudANH() {
         setProvs(provincias);
         setMunis(municipios);
 
-        // Cargar estaciones del municipio del consumidor
         if (solicitud.municipio) {
           const data = await estacionesService.getAll({
             municipio: String(solicitud.municipio),
@@ -169,10 +155,6 @@ export default function DetalleSolicitudANH() {
 
     cargarCascada();
   }, [accion, solicitud]);
-
-  // ------------------------------------------------
-  // CASCADA: DEPARTAMENTO -> PROVINCIA -> MUNICIPIO -> ESTACIONES
-  // ------------------------------------------------
 
   const onDeptoChange = async (deptoId: number) => {
     formAprobar.setValue("departamento", deptoId);
@@ -213,10 +195,6 @@ export default function DetalleSolicitudANH() {
       setEstaciones(lista.map((e: any) => ({ id: e.id, nombre: e.nombre })));
     } finally { setCargandoCatalogo(false); }
   };
-
-  // ------------------------------------------------
-  // ACCIONES
-  // ------------------------------------------------
 
   const onAprobar = async (data: AprobarData) => {
     if (!idPublico) return;
@@ -273,21 +251,13 @@ export default function DetalleSolicitudANH() {
     } finally { setProcesando(false); }
   };
 
-  // ------------------------------------------------
-  // CSS HELPERS
-  // ------------------------------------------------
-
-  const inputCls  = "w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none";
-  const selectCls = "w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none disabled:opacity-50";
-
-  // ------------------------------------------------
-  // RENDER
-  // ------------------------------------------------
+  const inputCls  = "w-full px-4 py-2.5 rounded-xl border border-border text-sm bg-input focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card outline-none";
+  const selectCls = "w-full px-4 py-2.5 rounded-xl border border-border text-sm bg-input focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card outline-none disabled:opacity-50";
 
   if (loading) return (
     <Layout>
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     </Layout>
   );
@@ -296,7 +266,7 @@ export default function DetalleSolicitudANH() {
     <Layout>
       <div className="text-center py-16">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-        <p className="text-slate-600">{error || "Solicitud no encontrada."}</p>
+        <p className="text-muted-foreground">{error || "Solicitud no encontrada."}</p>
       </div>
     </Layout>
   );
@@ -305,7 +275,6 @@ export default function DetalleSolicitudANH() {
   const puedeObservar = solicitud.estado === "PENDIENTE";
   const puedeRechazar = ["PENDIENTE", "OBSERVADA"].includes(solicitud.estado);
 
-  // Advertencias de modificación respecto a lo solicitado
   const combustibleModificado = accion === "aprobar" &&
     watchCombustible &&
     watchCombustible !== solicitud.tipo_combustible;
@@ -322,18 +291,18 @@ export default function DetalleSolicitudANH() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/anh/solicitudes")}
-            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            className="p-2 rounded-xl border border-border text-muted-foreground hover:bg-card transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-slate-800">
+              <h1 className="text-xl font-bold text-foreground">
                 Solicitud #{formatIdPublico(solicitud.id_publico)}
               </h1>
               <EstadoSolicitudBadge estado={solicitud.estado} />
             </div>
-            <p className="text-slate-500 text-sm">{formatFecha(solicitud.fecha_creacion, true)}</p>
+            <p className="text-muted-foreground text-sm">{formatFecha(solicitud.fecha_creacion, true)}</p>
           </div>
         </div>
 
@@ -344,15 +313,15 @@ export default function DetalleSolicitudANH() {
           </div>
         )}
         {exito && (
-          <div className="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm">
+          <div className="flex items-center gap-3 bg-state-success-bg border border-state-success-fg/20 text-state-success-fg rounded-xl px-4 py-3 text-sm">
             <CheckCircle className="w-4 h-4 shrink-0" /> {exito}
           </div>
         )}
 
         {/* DATOS CONSUMIDOR */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="font-semibold text-slate-700">Datos del solicitante</h2>
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">Datos del solicitante</h2>
           </div>
           <div className="px-6 py-4 grid grid-cols-2 gap-4">
             <Dato label="Nombre completo" value={solicitud.consumidor?.nombre_completo} />
@@ -361,9 +330,9 @@ export default function DetalleSolicitudANH() {
         </div>
 
         {/* DATOS SOLICITUD */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="font-semibold text-slate-700">Datos de la solicitud</h2>
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">Datos de la solicitud</h2>
           </div>
           <div className="px-6 py-4 grid grid-cols-2 gap-4">
             <Dato label="Tipo combustible"    value={COMBUSTIBLES[solicitud.tipo_combustible] ?? solicitud.tipo_combustible} />
@@ -375,8 +344,8 @@ export default function DetalleSolicitudANH() {
             <Dato label="Estación preferida"  value={(solicitud as any).estacion_nombre ?? "Sin preferencia"} />
             {solicitud.observacion_anh && (
               <div className="col-span-2">
-                <p className="text-xs text-slate-500 mb-1">Observación ANH</p>
-                <p className="text-sm text-slate-700 bg-amber-50 rounded-xl px-4 py-2">
+                <p className="text-xs text-muted-foreground mb-1">Observación ANH</p>
+                <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
                   {solicitud.observacion_anh}
                 </p>
               </div>
@@ -386,9 +355,9 @@ export default function DetalleSolicitudANH() {
 
         {/* DATOS APROBACIÓN */}
         {solicitud.litros_aprobados && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h2 className="font-semibold text-slate-700">Datos de aprobación</h2>
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="font-semibold text-foreground">Datos de aprobación</h2>
             </div>
             <div className="px-6 py-4 grid grid-cols-2 gap-4">
               <Dato label="Combustible aprobado" value={COMBUSTIBLES[solicitud.tipo_combustible_aprobado ?? ""] ?? solicitud.tipo_combustible_aprobado} />
@@ -404,9 +373,9 @@ export default function DetalleSolicitudANH() {
 
         {/* ACCIONES */}
         {(puedeAprobar || puedeObservar || puedeRechazar) && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h2 className="font-semibold text-slate-700">Acciones</h2>
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="font-semibold text-foreground">Acciones</h2>
             </div>
             <div className="px-6 py-4">
 
@@ -437,13 +406,13 @@ export default function DetalleSolicitudANH() {
                   <h3 className="font-medium text-green-700 text-sm">Aprobar solicitud</h3>
 
                   {/* Referencia de lo solicitado */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-700 flex gap-6">
+                  <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 text-xs text-primary flex gap-6 flex-wrap">
                     <span>Solicitó: <strong>{COMBUSTIBLES[solicitud.tipo_combustible] ?? solicitud.tipo_combustible}</strong></span>
                     <span>Litros: <strong>{solicitud.litros_solicitados} L</strong></span>
                     <span>Estación preferida: <strong>{(solicitud as any).estacion_nombre ?? "Sin preferencia"}</strong></span>
                   </div>
 
-                  {/* Advertencias de modificación */}
+                  {/* Advertencias */}
                   {combustibleModificado && (
                     <div className="flex items-start gap-2 bg-amber-50 border border-amber-300 text-amber-700 rounded-xl px-4 py-3 text-xs">
                       <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -459,7 +428,7 @@ export default function DetalleSolicitudANH() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Combustible a aprobar *</label>
+                      <label className="block text-xs font-medium text-muted-foreground mb-1">Combustible a aprobar *</label>
                       <select {...formAprobar.register("tipo_combustible_aprobado")} className={selectCls}>
                         <option value="">Seleccionar...</option>
                         {Object.entries(COMBUSTIBLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -467,24 +436,24 @@ export default function DetalleSolicitudANH() {
                       {formAprobar.formState.errors.tipo_combustible_aprobado && <p className="text-red-500 text-xs mt-1">{formAprobar.formState.errors.tipo_combustible_aprobado.message}</p>}
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Litros aprobados *</label>
+                      <label className="block text-xs font-medium text-muted-foreground mb-1">Litros aprobados *</label>
                       <input type="number" min={1} max={solicitud.litros_solicitados} {...formAprobar.register("litros_aprobados", { valueAsNumber: true })} className={inputCls} />
                       {formAprobar.formState.errors.litros_aprobados && <p className="text-red-500 text-xs mt-1">{formAprobar.formState.errors.litros_aprobados.message}</p>}
                     </div>
                   </div>
 
-                  {/* CASCADA GEOGRÁFICA PARA ESTACIÓN */}
-                  <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50/50">
-                    <p className="text-xs font-medium text-slate-600">
+                  {/* CASCADA GEOGRÁFICA */}
+                  <div className="border border-border rounded-xl p-4 space-y-3 bg-background/50">
+                    <p className="text-xs font-medium text-foreground">
                       Estación de servicio a asignar *
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                       Precargado con la ubicación indicada por el consumidor. Puedes cambiarlo si es necesario.
                     </p>
 
                     <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Departamento *</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Departamento *</label>
                         <select
                           value={watchDepto || 0}
                           onChange={e => onDeptoChange(Number(e.target.value))}
@@ -497,7 +466,7 @@ export default function DetalleSolicitudANH() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Provincia *</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Provincia *</label>
                         <select
                           value={watchProv || 0}
                           onChange={e => onProvChange(Number(e.target.value))}
@@ -511,7 +480,7 @@ export default function DetalleSolicitudANH() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Municipio *</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Municipio *</label>
                         <select
                           value={watchMuni || 0}
                           onChange={e => onMuniChange(Number(e.target.value))}
@@ -526,7 +495,7 @@ export default function DetalleSolicitudANH() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Estación *</label>
+                      <label className="block text-xs font-medium text-muted-foreground mb-1">Estación *</label>
                       <select
                         {...formAprobar.register("estacion_servicio", { valueAsNumber: true })}
                         disabled={!watchMuni || cargandoCatalogo}
@@ -549,12 +518,12 @@ export default function DetalleSolicitudANH() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Observación (opcional)</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Observación (opcional)</label>
                     <textarea {...formAprobar.register("observacion_anh")} rows={2} className={inputCls + " resize-none"} placeholder="Notas para el consumidor..." />
                   </div>
 
                   <div className="flex gap-3">
-                    <button type="button" onClick={() => { setAccion(null); setProvs([]); setMunis([]); setEstaciones([]); }} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">Cancelar</button>
+                    <button type="button" onClick={() => { setAccion(null); setProvs([]); setMunis([]); setEstaciones([]); }} className="px-4 py-2 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">Cancelar</button>
                     <button type="submit" disabled={procesando} className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 disabled:bg-slate-300 transition-colors">
                       {procesando ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                       Confirmar aprobación
@@ -568,12 +537,12 @@ export default function DetalleSolicitudANH() {
                 <form onSubmit={formObservar.handleSubmit(onObservar)} className="space-y-4">
                   <h3 className="font-medium text-amber-700 text-sm">Observar solicitud</h3>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Motivo de la observación *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Motivo de la observación *</label>
                     <textarea {...formObservar.register("observacion_anh")} rows={3} className={inputCls + " resize-none"} placeholder="Describe qué debe corregir o justificar el consumidor..." />
                     {formObservar.formState.errors.observacion_anh && <p className="text-red-500 text-xs mt-1">{formObservar.formState.errors.observacion_anh.message}</p>}
                   </div>
                   <div className="flex gap-3">
-                    <button type="button" onClick={() => setAccion(null)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">Cancelar</button>
+                    <button type="button" onClick={() => setAccion(null)} className="px-4 py-2 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">Cancelar</button>
                     <button type="submit" disabled={procesando} className="flex items-center gap-2 px-5 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 disabled:bg-slate-300 transition-colors">
                       {procesando ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <MessageSquare className="w-4 h-4" />}
                       Enviar observación
@@ -587,12 +556,12 @@ export default function DetalleSolicitudANH() {
                 <form onSubmit={formRechazar.handleSubmit(onRechazar)} className="space-y-4">
                   <h3 className="font-medium text-red-700 text-sm">Rechazar solicitud</h3>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Motivo del rechazo *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Motivo del rechazo *</label>
                     <textarea {...formRechazar.register("observacion_anh")} rows={3} className={inputCls + " resize-none"} placeholder="Describe el motivo del rechazo..." />
                     {formRechazar.formState.errors.observacion_anh && <p className="text-red-500 text-xs mt-1">{formRechazar.formState.errors.observacion_anh.message}</p>}
                   </div>
                   <div className="flex gap-3">
-                    <button type="button" onClick={() => setAccion(null)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">Cancelar</button>
+                    <button type="button" onClick={() => setAccion(null)} className="px-4 py-2 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">Cancelar</button>
                     <button type="submit" disabled={procesando} className="flex items-center gap-2 px-5 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 disabled:bg-slate-300 transition-colors">
                       {procesando ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <XCircle className="w-4 h-4" />}
                       Confirmar rechazo
@@ -605,31 +574,31 @@ export default function DetalleSolicitudANH() {
         )}
 
         {/* DOCUMENTOS */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="font-semibold text-slate-700">Documentos</h2>
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">Documentos</h2>
           </div>
           <div className="px-6 py-4 flex gap-3 flex-wrap">
             <button
               onClick={() => setPdfViewer("declaracion")}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-medium hover:bg-primary/20 transition-colors"
             >
               <Eye className="w-4 h-4" /> Ver declaración jurada
             </button>
             {solicitud.estado === "APROBADA" && (
               <button
                 onClick={() => setPdfViewer("comprobante")}
-                className="flex items-center gap-2 px-4 py-2.5 bg-green-50 text-green-700 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-state-success-bg text-state-success-fg rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 <Eye className="w-4 h-4" /> Ver comprobante
               </button>
             )}
-            {solicitud.documento_justificativo && (
+            {solicitud.documento_justificativo &&(
               <a
                 href={solicitud.documento_justificativo}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-100 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-background text-foreground rounded-xl text-sm font-medium hover:bg-border transition-colors"
               >
                 <FileText className="w-4 h-4" /> Doc. justificativo
               </a>

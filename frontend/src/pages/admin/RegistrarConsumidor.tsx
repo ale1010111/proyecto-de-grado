@@ -1,6 +1,5 @@
 // src/pages/admin/RegistrarConsumidor.tsx
 // Wizard completo para que ADMIN/ANH registren consumidores
-// La cuenta se crea activa con correo de verificación
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -70,18 +69,18 @@ function PasoIndicador({ actual }: { actual: number }) {
           <div key={num} className="flex items-center gap-2">
             <div className="flex flex-col items-center gap-1">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                completo ? "bg-green-500 text-white" :
-                activo   ? "bg-[#1a3a5c] text-white" :
-                           "bg-slate-200 text-slate-400"
+                completo ? "bg-primary text-primary-foreground" :
+                activo   ? "bg-navbar text-navbar-foreground" :
+                           "bg-border text-muted-foreground"
               }`}>
                 {completo ? <CheckCircle className="w-4 h-4" /> : num}
               </div>
-              <span className={`text-xs hidden sm:block ${activo ? "text-[#1a3a5c] font-medium" : "text-slate-400"}`}>
+              <span className={`text-xs hidden sm:block ${activo ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                 {label}
               </span>
             </div>
             {i < pasos.length - 1 && (
-              <div className={`w-8 sm:w-12 h-0.5 mb-4 ${num < actual ? "bg-green-500" : "bg-slate-200"}`} />
+              <div className={`w-8 sm:w-12 h-0.5 mb-4 ${num < actual ? "bg-primary" : "bg-border"}`} />
             )}
           </div>
         );
@@ -100,17 +99,14 @@ export default function RegistrarConsumidor() {
   const [loading, setLoading] = useState(false);
   const [exito,   setExito]   = useState("");
 
-  // Catálogos
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [provincias,    setProvincias]    = useState<Provincia[]>([]);
   const [municipios,    setMunicipios]    = useState<Municipio[]>([]);
 
-  // Archivos
   const [anverso,         setAnverso]         = useState<File | null>(null);
   const [reverso,         setReverso]         = useState<File | null>(null);
   const [fotoSosteniendo, setFotoSosteniendo] = useState<File | null>(null);
 
-  // Datos acumulados
   const [datosPaso1, setDatosPaso1] = useState<Paso1Data | null>(null);
   const [datosPaso2, setDatosPaso2] = useState<Paso2Data | null>(null);
 
@@ -173,7 +169,6 @@ export default function RegistrarConsumidor() {
       formData.append("reverso",          reverso);
       formData.append("foto_sosteniendo", fotoSosteniendo);
 
-      // Usar el mismo endpoint público de registro
       await api.post("/api/users/registro/consumidor/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -201,25 +196,25 @@ export default function RegistrarConsumidor() {
     `w-full px-4 py-2.5 rounded-xl border text-sm transition-colors outline-none ${
       hasError
         ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-        : "border-slate-200 bg-slate-50 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:bg-white"
+        : "border-border bg-input focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-card"
     }`;
 
   const selectCls = (hasError: boolean) =>
-    `w-full px-4 py-2.5 rounded-xl border text-sm outline-none bg-slate-50 ${
-      hasError ? "border-red-300" : "border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+    `w-full px-4 py-2.5 rounded-xl border text-sm outline-none bg-input ${
+      hasError ? "border-red-300" : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
     }`;
 
   const FileInput = ({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File) => void }) => (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1.5">{label} *</label>
+      <label className="block text-sm font-medium text-foreground mb-1.5">{label} *</label>
       <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-        file ? "border-green-400 bg-green-50" : "border-slate-300 bg-slate-50 hover:bg-slate-100"
+        file ? "border-primary bg-state-success-bg" : "border-border bg-input hover:bg-background"
       }`}>
         <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
           onChange={e => e.target.files?.[0] && onChange(e.target.files[0])} />
         {file
-          ? <><CheckCircle className="w-5 h-5 text-green-500 mx-auto mb-1" /><p className="text-xs text-green-600 truncate max-w-[160px]">{file.name}</p></>
-          : <><Upload className="w-5 h-5 text-slate-400 mx-auto mb-1" /><p className="text-xs text-slate-500">JPG, PNG o WebP</p></>
+          ? <><CheckCircle className="w-5 h-5 text-primary mx-auto mb-1" /><p className="text-xs text-state-success-fg truncate max-w-[160px]">{file.name}</p></>
+          : <><Upload className="w-5 h-5 text-muted-foreground mx-auto mb-1" /><p className="text-xs text-muted-foreground">JPG, PNG o WebP</p></>
         }
       </label>
     </div>
@@ -229,19 +224,19 @@ export default function RegistrarConsumidor() {
   if (exito) return (
     <Layout>
       <div className="max-w-lg mx-auto">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-12 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+        <div className="bg-card rounded-2xl border border-border shadow-sm px-8 py-12 text-center">
+          <div className="w-16 h-16 bg-state-success-bg rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-state-success-fg" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">¡Consumidor registrado!</h2>
-          <p className="text-slate-500 text-sm mb-6">{exito}</p>
+          <h2 className="text-xl font-bold text-foreground mb-2">¡Consumidor registrado!</h2>
+          <p className="text-muted-foreground text-sm mb-6">{exito}</p>
           <div className="flex gap-3 justify-center">
             <button onClick={() => navigate("/anh/consumidores")}
-              className="px-5 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover transition-colors">
               Ver consumidores
             </button>
             <button onClick={() => { setPaso(1); setExito(""); setDatosPaso1(null); setDatosPaso2(null); form1.reset(); form2.reset(); form3.reset(); setAnverso(null); setReverso(null); setFotoSosteniendo(null); }}
-              className="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+              className="px-5 py-2.5 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
               Registrar otro
             </button>
           </div>
@@ -257,22 +252,22 @@ export default function RegistrarConsumidor() {
         {/* HEADER */}
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/anh/consumidores")}
-            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+            className="p-2 rounded-xl border border-border text-muted-foreground hover:bg-card transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#1a3a5c] rounded-xl flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-navbar rounded-xl flex items-center justify-center">
+              <UserPlus className="w-5 h-5 text-navbar-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">Registrar consumidor</h1>
-              <p className="text-slate-500 text-sm">El consumidor recibirá un PIN de verificación por correo</p>
+              <h1 className="text-xl font-bold text-foreground">Registrar consumidor</h1>
+              <p className="text-muted-foreground text-sm">El consumidor recibirá un PIN de verificación por correo</p>
             </div>
           </div>
         </div>
 
         {/* FORMULARIO */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="px-8 py-6">
             <PasoIndicador actual={paso} />
 
@@ -285,10 +280,10 @@ export default function RegistrarConsumidor() {
             {/* PASO 1 */}
             {paso === 1 && (
               <form onSubmit={submitPaso1} className="space-y-4">
-                <h3 className="font-semibold text-slate-700 text-sm mb-3">Datos de identidad</h3>
+                <h3 className="font-semibold text-foreground text-sm mb-3">Datos de identidad</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Tipo de documento *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Tipo de documento *</label>
                     <select {...form1.register("tipo_documento")} className={selectCls(!!form1.formState.errors.tipo_documento)}>
                       <option value="">Seleccionar...</option>
                       {TIPOS_DOCUMENTO.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -296,41 +291,41 @@ export default function RegistrarConsumidor() {
                     {form1.formState.errors.tipo_documento && <p className="text-red-500 text-xs mt-1">{form1.formState.errors.tipo_documento.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">N° Documento *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">N° Documento *</label>
                     <input {...form1.register("numero_documento")} placeholder="Ej: 12345678" inputMode="numeric" maxLength={9}
                       onInput={e => { (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, ""); }}
                       className={inputCls(!!form1.formState.errors.numero_documento)} />
                     {form1.formState.errors.numero_documento && <p className="text-red-500 text-xs mt-1">{form1.formState.errors.numero_documento.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Complemento</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Complemento</label>
                     <input {...form1.register("complemento_documento")} placeholder="Ej: 1A" className={inputCls(false)} />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Nombres *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Nombres *</label>
                     <input {...form1.register("nombres", { onChange: e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-záéíóúüñ ]/g, ""); } })}
                       placeholder="Nombres" className={inputCls(!!form1.formState.errors.nombres)} />
                     {form1.formState.errors.nombres && <p className="text-red-500 text-xs mt-1">{form1.formState.errors.nombres.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Primer apellido *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Primer apellido *</label>
                     <input {...form1.register("apellido_paterno", { onChange: e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-záéíóúüñ ]/g, ""); } })}
                       placeholder="Apellido paterno" className={inputCls(!!form1.formState.errors.apellido_paterno)} />
                     {form1.formState.errors.apellido_paterno && <p className="text-red-500 text-xs mt-1">{form1.formState.errors.apellido_paterno.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Segundo apellido</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Segundo apellido</label>
                     <input {...form1.register("apellido_materno", { onChange: e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-záéíóúüñ ]/g, ""); } })}
                       placeholder="Apellido materno" className={inputCls(false)} />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Fecha de nacimiento *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Fecha de nacimiento *</label>
                     <input type="date" {...form1.register("fecha_nacimiento")} className={inputCls(!!form1.formState.errors.fecha_nacimiento)} />
                     {form1.formState.errors.fecha_nacimiento && <p className="text-red-500 text-xs mt-1">{form1.formState.errors.fecha_nacimiento.message}</p>}
                   </div>
                 </div>
                 <div className="flex justify-end pt-2">
-                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover transition-colors">
                     Siguiente <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -340,21 +335,21 @@ export default function RegistrarConsumidor() {
             {/* PASO 2 */}
             {paso === 2 && (
               <form onSubmit={submitPaso2} className="space-y-4">
-                <h3 className="font-semibold text-slate-700 text-sm mb-3">Datos generales</h3>
+                <h3 className="font-semibold text-foreground text-sm mb-3">Datos generales</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Correo electrónico *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Correo electrónico *</label>
                     <input type="email" {...form2.register("email", { onChange: e => { e.target.value = e.target.value.toLowerCase(); } })}
                       placeholder="ejemplo@correo.com" className={inputCls(!!form2.formState.errors.email)} />
                     {form2.formState.errors.email && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.email.message}</p>}
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Celular *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Celular *</label>
                     <input {...form2.register("celular")} placeholder="Ej: 70000000" className={inputCls(!!form2.formState.errors.celular)} />
                     {form2.formState.errors.celular && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.celular.message}</p>}
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Departamento *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Departamento *</label>
                     <select {...form2.register("departamento")} onChange={e => { form2.setValue("departamento", e.target.value); onChangeDepartamento(e.target.value); }}
                       className={selectCls(!!form2.formState.errors.departamento)}>
                       <option value="">Seleccionar...</option>
@@ -363,7 +358,7 @@ export default function RegistrarConsumidor() {
                     {form2.formState.errors.departamento && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.departamento.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Provincia *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Provincia *</label>
                     <select {...form2.register("provincia")} onChange={e => { form2.setValue("provincia", e.target.value); onChangeProvincia(e.target.value); }}
                       className={selectCls(!!form2.formState.errors.provincia)} disabled={provincias.length === 0}>
                       <option value="">Seleccionar...</option>
@@ -372,7 +367,7 @@ export default function RegistrarConsumidor() {
                     {form2.formState.errors.provincia && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.provincia.message}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Municipio *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Municipio *</label>
                     <select {...form2.register("municipio")} className={selectCls(!!form2.formState.errors.municipio)} disabled={municipios.length === 0}>
                       <option value="">Seleccionar...</option>
                       {municipios.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
@@ -380,7 +375,7 @@ export default function RegistrarConsumidor() {
                     {form2.formState.errors.municipio && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.municipio.message}</p>}
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Actividad económica *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Actividad económica *</label>
                     <select {...form2.register("actividad")} className={selectCls(!!form2.formState.errors.actividad)}>
                       <option value="">Seleccionar...</option>
                       {Object.entries(ACTIVIDADES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -388,16 +383,16 @@ export default function RegistrarConsumidor() {
                     {form2.formState.errors.actividad && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.actividad.message}</p>}
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Dirección *</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Dirección *</label>
                     <input {...form2.register("direccion")} placeholder="Calle, N°, Barrio..." maxLength={100} className={inputCls(!!form2.formState.errors.direccion)} />
                     {form2.formState.errors.direccion && <p className="text-red-500 text-xs mt-1">{form2.formState.errors.direccion.message}</p>}
                   </div>
                 </div>
                 <div className="flex justify-between pt-2">
-                  <button type="button" onClick={() => setPaso(1)} className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  <button type="button" onClick={() => setPaso(1)} className="flex items-center gap-2 px-4 py-2.5 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
                     <ChevronLeft className="w-4 h-4" /> Anterior
                   </button>
-                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover transition-colors">
                     Siguiente <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -407,34 +402,34 @@ export default function RegistrarConsumidor() {
             {/* PASO 3 */}
             {paso === 3 && (
               <form onSubmit={submitPaso3} className="space-y-4">
-                <h3 className="font-semibold text-slate-700 text-sm mb-3">Contraseña de acceso</h3>
+                <h3 className="font-semibold text-foreground text-sm mb-3">Contraseña de acceso</h3>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Contraseña *</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Contraseña *</label>
                   <div className="relative">
                     <input type={showPass ? "text" : "password"} {...form3.register("password")}
                       placeholder="Mínimo 8 caracteres" className={inputCls(!!form3.formState.errors.password) + " pr-11"} />
-                    <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {form3.formState.errors.password && <p className="text-red-500 text-xs mt-1">{form3.formState.errors.password.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Repetir contraseña *</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Repetir contraseña *</label>
                   <div className="relative">
                     <input type={showPass2 ? "text" : "password"} {...form3.register("password2")}
                       placeholder="Repite la contraseña" className={inputCls(!!form3.formState.errors.password2) + " pr-11"} />
-                    <button type="button" onClick={() => setShowPass2(!showPass2)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <button type="button" onClick={() => setShowPass2(!showPass2)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPass2 ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {form3.formState.errors.password2 && <p className="text-red-500 text-xs mt-1">{form3.formState.errors.password2.message}</p>}
                 </div>
                 <div className="flex justify-between pt-2">
-                  <button type="button" onClick={() => setPaso(2)} className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  <button type="button" onClick={() => setPaso(2)} className="flex items-center gap-2 px-4 py-2.5 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
                     <ChevronLeft className="w-4 h-4" /> Anterior
                   </button>
-                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 bg-[#1a3a5c] text-white rounded-xl text-sm font-medium hover:bg-[#152e4d] transition-colors">
+                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary-hover transition-colors">
                     Siguiente <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -444,19 +439,19 @@ export default function RegistrarConsumidor() {
             {/* PASO 4 */}
             {paso === 4 && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-700 text-sm mb-1">Fotografías del documento</h3>
-                <p className="text-xs text-slate-500 mb-4">Sube fotos claras del documento de identidad del consumidor.</p>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Fotografías del documento</h3>
+                <p className="text-xs text-muted-foreground mb-4">Sube fotos claras del documento de identidad del consumidor.</p>
                 <div className="grid grid-cols-1 gap-4">
                   <FileInput label="Anverso (frente)" file={anverso} onChange={setAnverso} />
                   <FileInput label="Reverso (dorso)"  file={reverso} onChange={setReverso} />
                   <FileInput label="Foto sosteniendo el documento" file={fotoSosteniendo} onChange={setFotoSosteniendo} />
                 </div>
                 <div className="flex justify-between pt-2">
-                  <button type="button" onClick={() => setPaso(3)} className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                  <button type="button" onClick={() => setPaso(3)} className="flex items-center gap-2 px-4 py-2.5 border border-border text-muted-foreground rounded-xl text-sm hover:bg-background transition-colors">
                     <ChevronLeft className="w-4 h-4" /> Anterior
                   </button>
                   <button onClick={submitFinal} disabled={loading}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors">
+                    className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-slate-300 disabled:cursor-not-allowed text-primary-foreground rounded-xl text-sm font-medium transition-colors">
                     {loading
                       ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       : <CheckCircle className="w-4 h-4" />

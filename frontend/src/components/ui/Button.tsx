@@ -1,6 +1,4 @@
-// ------------------------------------------------
 // src/components/ui/Button.tsx
-// ------------------------------------------------
 
 import type { ReactNode } from "react";
 import { Spinner } from "./Spinner";
@@ -14,11 +12,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<string, string> = {
-  primary:   "bg-[#1a3a5c] hover:bg-[#152e4d] text-white",
-  secondary: "bg-slate-100 hover:bg-slate-200 text-slate-700",
+  primary:   "bg-primary hover:bg-primary-hover text-primary-foreground",
+  secondary: "bg-background hover:bg-border text-foreground",
   danger:    "bg-red-600 hover:bg-red-700 text-white",
-  ghost:     "hover:bg-slate-100 text-slate-600",
-  outline:   "border border-slate-200 hover:bg-slate-50 text-slate-700",
+  ghost:     "hover:bg-background text-muted-foreground",
+  outline:   "border border-border hover:bg-background text-foreground",
 };
 
 const sizes: Record<string, string> = {
