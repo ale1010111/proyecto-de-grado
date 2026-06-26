@@ -40,12 +40,29 @@ interface AuthContextType {
 }
 
 // ------------------------------------------------
+// GESTION DE TOKEN — memoria + localStorage
+// ------------------------------------------------
+
+const TOKEN_KEY = "anh_access_token";
+
+let tokenMemoria: string | null = (() => {
+  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
+})();
+
+const setToken = (token: string | null) => {
+  tokenMemoria = token;
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else       localStorage.removeItem(TOKEN_KEY);
+  } catch { /* modo privado estricto */ }
+};
+
+const getToken = () => tokenMemoria;
+
+// ------------------------------------------------
 // AXIOS CONFIG
 // ------------------------------------------------
 
-// URL base del backend
-// En producción se inyecta vía VITE_API_URL (Vercel)
-// En desarrollo local se usa el fallback a 127.0.0.1:8000
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export const api = axios.create({
@@ -54,7 +71,16 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Rutas públicas que no deben disparar redirect
+// REQUEST INTERCEPTOR — inyecta el token en CADA request
+// Mas confiable que api.defaults.headers.common en mobile
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const RUTAS_PUBLICAS = [
   "/login",
   "/registro",
@@ -66,7 +92,6 @@ const RUTAS_PUBLICAS = [
 const esRutaPublica = () =>
   RUTAS_PUBLICAS.some(r => window.location.pathname.startsWith(r));
 
-// URLs que nunca deben interceptarse
 const esUrlExcluida = (url?: string) =>
   !url ||
   url.includes("/auth/login/") ||
@@ -74,7 +99,7 @@ const esUrlExcluida = (url?: string) =>
   url.includes("/auth/logout/");
 
 // ------------------------------------------------
-// INTERCEPTOR — renovar token automáticamente
+// RESPONSE INTERCEPTOR — renovar token automáticamente
 // ------------------------------------------------
 
 api.interceptors.response.use(
@@ -95,11 +120,11 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
         if (refreshRes.data?.access) {
-          api.defaults.headers.common["Authorization"] =
-            `Bearer ${refreshRes.data.access}`;
+          setToken(refreshRes.data.access);
         }
         return api(original);
       } catch {
+        setToken(null);
         if (!esRutaPublica()) {
           window.location.href = "/login";
         }
@@ -125,10 +150,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(res.data);
     } catch {
       setUser(null);
+      setToken(null);
     }
   }, []);
 
-  // Verificar sesión al cargar — solo si no estamos en ruta pública
   useEffect(() => {
     if (esRutaPublica()) {
       setLoading(false);
@@ -138,30 +163,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
-    // 1. Limpiar header con token expirado
-    delete api.defaults.headers.common["Authorization"];
-
-    // 2. Limpiar cookies de sesión anterior usando axios directo
-    //    para evitar que el interceptor interfiera
+    setToken(null);
     try {
       await axios.post(
         `${API_URL}/api/users/auth/logout/`,
         {},
         { withCredentials: true }
       );
-    } catch {
-      // ignorar — las cookies pueden ya estar expiradas
-    }
+    } catch { /* ignorar */ }
 
-    // 3. Hacer login
     const res = await api.post("/api/users/auth/login/", { email, password });
 
-    // 4. Guardar access token
     if (res.data.access) {
-      api.defaults.headers.common["Authorization"] = `Bearer ${res.data.access}`;
+      setToken(res.data.access);
     }
 
-    // 5. Cargar datos del usuario
     const meRes = await api.get("/api/users/me/");
     setUser(meRes.data);
   };
@@ -173,11 +189,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         {},
         { withCredentials: true }
       );
-    } catch {
-      // ignorar errores al cerrar sesión
-    } finally {
+    } catch { /* ignorar */ }
+    finally {
       setUser(null);
-      delete api.defaults.headers.common["Authorization"];
+      setToken(null);
     }
   };
 
