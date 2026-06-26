@@ -170,7 +170,10 @@ class CrearFuncionarioView(APIView):
 class LoginView(APIView):
     """
     Autenticación por email y contraseña.
-    Retorna tokens JWT como cookies httponly.
+    Retorna tokens JWT como cookies httponly Y en el body
+    de la respuesta (campo "access") para que el frontend
+    pueda usarlo como header Authorization Bearer en casos
+    donde las cookies cross-origin fallan (Safari iOS, etc).
     Registra intentos fallidos y bloquea tras 5 intentos.
     """
 
@@ -220,10 +223,13 @@ class LoginView(APIView):
         refresh = RefreshToken.for_user(user)
         access  = str(refresh.access_token)
 
+        # IMPORTANTE: enviar access en el body para que el frontend
+        # lo use como Authorization Bearer si las cookies fallan
         response = Response(
             {
                 "detail": "Login exitoso.",
                 "user": UserSerializer(user).data,
+                "access": access,
             },
             status=status.HTTP_200_OK
         )
@@ -240,7 +246,9 @@ class LoginView(APIView):
 class RefreshView(APIView):
     """
     Renueva el access token usando el refresh token
-    almacenado en las cookies.
+    almacenado en las cookies. También devuelve el nuevo
+    access en el body para que el frontend pueda actualizar
+    su header Authorization Bearer.
     """
 
     permission_classes = [AllowAny]
@@ -259,8 +267,12 @@ class RefreshView(APIView):
             refresh = RefreshToken(refresh_token)
             access  = str(refresh.access_token)
 
+            # IMPORTANTE: enviar access también en el body
             response = Response(
-                {"detail": "Token renovado."},
+                {
+                    "detail": "Token renovado.",
+                    "access": access,
+                },
                 status=status.HTTP_200_OK
             )
             _set_auth_cookies(response, access=access, refresh=refresh_token)
@@ -731,4 +743,3 @@ class FuncionarioCambiarEstadoView(APIView):
             "detail": f"Estado cambiado a {nuevo_estado}.",
             "estado_cuenta": nuevo_estado,
         })
- 

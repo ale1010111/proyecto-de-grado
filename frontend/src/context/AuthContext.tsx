@@ -89,11 +89,15 @@ api.interceptors.response.use(
     ) {
       original._retry = true;
       try {
-        await axios.post(
+        const refreshRes = await axios.post(
           `${API_URL}/api/users/auth/refresh/`,
           {},
           { withCredentials: true }
         );
+        if (refreshRes.data?.access) {
+          api.defaults.headers.common["Authorization"] =
+            `Bearer ${refreshRes.data.access}`;
+        }
         return api(original);
       } catch {
         if (!esRutaPublica()) {
